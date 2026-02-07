@@ -1,0 +1,51 @@
+{
+  "id": "001-mvp",
+  "title": "휴앤고 단가계산기 MVP",
+  "status": "open",
+  "created": "2026-02-07T19:45:00+09:00",
+  "description": "카페24 API 연동 견적 자동화 시스템",
+  "tasks": [
+    {
+      "id": "task-001",
+      "title": "프로젝트 기본 셋업 및 카페24 OAuth 인증",
+      "status": "pending",
+      "description": "Next.js 프로젝트에 카페24 OAuth 2.0 인증 구현. 환경변수 설정, API 라우트 생성."
+    },
+    {
+      "id": "task-002", 
+      "title": "카페24 상품 API 연동",
+      "status": "pending",
+      "description": "카페24 API로 상품 목록, 옵션, 가격 정보 조회. 상품 데이터 타입 정의."
+    },
+    {
+      "id": "task-003",
+      "title": "단가 계산기 UI - 상품 선택",
+      "status": "pending",
+      "description": "제품 선택 드롭다운, 옵션 선택 UI, 수량 입력, 추가상품 선택. 자사몰과 유사한 UX."
+    },
+    {
+      "id": "task-004",
+      "title": "견적 항목 관리 및 계산",
+      "status": "pending",
+      "description": "여러 상품 추가, 할인율 적용, 단가 수동 수정, 합계 계산 로직."
+    },
+    {
+      "id": "task-005",
+      "title": "견적서 생성 - 브랜디즈/호탱감탱",
+      "status": "pending",
+      "description": "두 가지 사업자 양식 견적서 생성. 날짜, 수신자, 부가세 포함/제외 전환, 메모, 도장 삽입."
+    },
+    {
+      "id": "task-006",
+      "title": "거래명세서 생성",
+      "status": "pending",
+      "description": "브랜디즈 양식 거래명세서 생성."
+    },
+    {
+      "id": "task-007",
+      "title": "PDF/엑셀 다운로드",
+      "status": "pending",
+      "description": "견적서, 거래명세서를 PDF 및 엑셀 파일로 다운로드."
+    }
+  ]
+}
