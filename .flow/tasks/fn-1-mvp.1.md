@@ -18,8 +18,7 @@
 - `src/app/api/auth/cafe24/callback/route.ts`: 콜백 처리 + state CSRF 검증 + 토큰 교환
 - MVP용 서버 메모리 토큰 저장소 (프로덕션에서는 DB로 교체 필요)
 - `pnpm build` 성공 확인
-
 ## Evidence
-- Commits: 이 태스크에서 생성된 커밋
-- Tests: `pnpm build` 성공
+- Commits: 91a716ce39053ccb9ce2f10e57d368f0cb4b1a48
+- Tests: pnpm build
 - PRs:
