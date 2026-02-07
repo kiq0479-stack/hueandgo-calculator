@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-02-07T10:47:02.922880Z",
+  "depends_on": [
+    "fn-1-mvp.5",
+    "fn-1-mvp.6"
+  ],
+  "epic": "fn-1-mvp",
+  "id": "fn-1-mvp.7",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-1-mvp.7.md",
+  "status": "todo",
+  "title": "PDF/\uc5d1\uc140 \ub2e4\uc6b4\ub85c\ub4dc",
+  "updated_at": "2026-02-07T10:47:02.922996Z"
+}

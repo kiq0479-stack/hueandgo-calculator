@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-02-07T10:47:02.751581Z",
+  "depends_on": [
+    "fn-1-mvp.4"
+  ],
+  "epic": "fn-1-mvp",
+  "id": "fn-1-mvp.5",
+  "priority": null,
+  "spec_path": ".flow/tasks/fn-1-mvp.5.md",
+  "status": "todo",
+  "title": "\uacac\uc801\uc11c \uc0dd\uc131 (\ube0c\ub79c\ub514\uc988/\ud638\ud0f1\uac10\ud0f1)",
+  "updated_at": "2026-02-07T10:47:02.751699Z"
+}
