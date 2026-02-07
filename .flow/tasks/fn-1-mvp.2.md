@@ -17,8 +17,7 @@
 - `src/app/api/products/route.ts`: GET /api/products 라우트 - 목록 조회(limit/offset/selling 파라미터) + product_no 쿼리로 상세 조회(옵션+품목 포함)
 - 인증 미완료 시 401 에러 응답
 - `pnpm build` 성공 확인
-
 ## Evidence
-- Commits:
+- Commits: 157d22e
 - Tests: pnpm build
 - PRs:
