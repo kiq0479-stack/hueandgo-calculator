@@ -7,6 +7,7 @@ import QuoteForm from '@/components/quote/QuoteForm';
 import QuotePreview from '@/components/quote/QuotePreview';
 import InvoiceForm from '@/components/invoice/InvoiceForm';
 import InvoicePreview from '@/components/invoice/InvoicePreview';
+import ExportButtons from '@/components/quote/ExportButtons';
 import useQuote from '@/hooks/useQuote';
 import { getDefaultFormData, type QuoteFormData } from '@/lib/quote/templates';
 
@@ -83,13 +84,22 @@ export default function Home() {
                 <h2 className="text-base font-semibold text-gray-800">
                   견적서 정보
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(!showPreview)}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                >
-                  {showPreview ? '미리보기 닫기' : '견적서 미리보기'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <ExportButtons
+                    documentType="quote"
+                    previewElementId="quote-preview"
+                    items={items}
+                    totals={totals}
+                    formData={formData}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                  >
+                    {showPreview ? '미리보기 닫기' : '견적서 미리보기'}
+                  </button>
+                </div>
               </div>
               <QuoteForm formData={formData} onChange={setFormData} />
             </section>
@@ -116,13 +126,22 @@ export default function Home() {
                 <h2 className="text-base font-semibold text-gray-800">
                   거래명세서 정보
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => setShowInvoicePreview(!showInvoicePreview)}
-                  className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
-                >
-                  {showInvoicePreview ? '미리보기 닫기' : '거래명세서 미리보기'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <ExportButtons
+                    documentType="invoice"
+                    previewElementId="invoice-preview"
+                    items={items}
+                    totals={totals}
+                    formData={invoiceFormData}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowInvoicePreview(!showInvoicePreview)}
+                    className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                  >
+                    {showInvoicePreview ? '미리보기 닫기' : '거래명세서 미리보기'}
+                  </button>
+                </div>
               </div>
               <InvoiceForm formData={invoiceFormData} onChange={setInvoiceFormData} />
             </section>
