@@ -1,7 +1,7 @@
 'use client';
 
 import type { QuoteItem as QuoteItemType } from '@/components/calculator/Calculator';
-import type { QuoteTotals } from '@/hooks/useQuote';
+import type { QuoteTotals, TruncationType } from '@/hooks/useQuote';
 import QuoteItem from './QuoteItem';
 import DiscountControl from './DiscountControl';
 import QuoteSummary from './QuoteSummary';
@@ -9,22 +9,26 @@ import QuoteSummary from './QuoteSummary';
 interface QuoteItemListProps {
   items: QuoteItemType[];
   discountRate: number;
+  truncation: TruncationType;
   totals: QuoteTotals;
   onRemove: (id: string) => void;
   onUpdateQuantity: (id: string, quantity: number) => void;
   onUpdateUnitPrice: (id: string, unitPrice: number) => void;
   onDiscountChange: (rate: number) => void;
+  onTruncationChange: (type: TruncationType) => void;
   onClearAll: () => void;
 }
 
 export default function QuoteItemList({
   items,
   discountRate,
+  truncation,
   totals,
   onRemove,
   onUpdateQuantity,
   onUpdateUnitPrice,
   onDiscountChange,
+  onTruncationChange,
   onClearAll,
 }: QuoteItemListProps) {
   if (items.length === 0) {
@@ -55,11 +59,14 @@ export default function QuoteItemList({
         ))}
       </div>
 
-      {/* 할인율 */}
+      {/* 할인율 + 절삭 */}
       <DiscountControl
         discountRate={discountRate}
         onDiscountChange={onDiscountChange}
+        truncation={truncation}
+        onTruncationChange={onTruncationChange}
         subtotal={totals.subtotal}
+        truncationAmount={totals.truncationAmount}
       />
 
       {/* 합계 */}

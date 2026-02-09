@@ -15,12 +15,14 @@ export default function Home() {
   const {
     items,
     discountRate,
+    truncation,
     totals,
     addItem,
     removeItem,
     updateQuantity,
     updateUnitPrice,
     updateDiscountRate,
+    updateTruncation,
     clearAll,
   } = useQuote();
 
@@ -65,11 +67,13 @@ export default function Home() {
             <QuoteItemList
               items={items}
               discountRate={discountRate}
+              truncation={truncation}
               totals={totals}
               onRemove={removeItem}
               onUpdateQuantity={updateQuantity}
               onUpdateUnitPrice={updateUnitPrice}
               onDiscountChange={updateDiscountRate}
+              onTruncationChange={updateTruncation}
               onClearAll={clearAll}
             />
           </section>

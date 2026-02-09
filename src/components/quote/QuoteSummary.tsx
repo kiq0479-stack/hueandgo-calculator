@@ -11,6 +11,8 @@ export default function QuoteSummary({ totals }: QuoteSummaryProps) {
     subtotal,
     discountRate,
     discountAmount,
+    truncation,
+    truncationAmount,
     supplyAmount,
     vat,
     grandTotal,
@@ -29,6 +31,14 @@ export default function QuoteSummary({ totals }: QuoteSummaryProps) {
         <div className="flex justify-between text-sm text-red-500">
           <span>할인 ({discountRate}%)</span>
           <span>-{discountAmount.toLocaleString()}원</span>
+        </div>
+      )}
+
+      {/* 절삭 */}
+      {truncation !== 'none' && truncationAmount > 0 && (
+        <div className="flex justify-between text-sm text-orange-500">
+          <span>절삭 ({truncation === '1' ? '일의자리' : truncation === '10' ? '십의자리' : '백의자리'})</span>
+          <span>-{truncationAmount.toLocaleString()}원</span>
         </div>
       )}
 

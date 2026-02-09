@@ -3,10 +3,14 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { QuoteItem } from '@/components/calculator/Calculator';
 
+// 절삭 타입: 'none' | '1' | '10' | '100' (일/십/백의자리 절삭)
+export type TruncationType = 'none' | '1' | '10' | '100';
+
 // 견적 전체 상태
 export interface QuoteState {
   items: QuoteItem[];
   discountRate: number; // 0~100 (퍼센트)
+  truncation: TruncationType;
 }
 
 // 견적 합계 정보
@@ -17,6 +21,10 @@ export interface QuoteTotals {
   discountAmount: number;
   /** 할인율 (0~100) */
   discountRate: number;
+  /** 절삭 타입 */
+  truncation: TruncationType;
+  /** 절삭 금액 */
+  truncationAmount: number;
   /** 공급가액 (부가세 제외) */
   supplyAmount: number;
   /** 부가세 */
@@ -25,6 +33,20 @@ export interface QuoteTotals {
   grandTotal: number;
   /** 항목 수 */
   itemCount: number;
+}
+
+// 절삭 적용 함수
+function applyTruncation(amount: number, truncation: TruncationType): number {
+  switch (truncation) {
+    case '1': // 일의자리 절삭 (10원 단위)
+      return Math.floor(amount / 10) * 10;
+    case '10': // 십의자리 절삭 (100원 단위)
+      return Math.floor(amount / 100) * 100;
+    case '100': // 백의자리 절삭 (1000원 단위)
+      return Math.floor(amount / 1000) * 1000;
+    default:
+      return amount;
+  }
 }
 
 // 개별 항목의 소계 계산
@@ -39,6 +61,7 @@ export function calcItemTotal(item: QuoteItem): number {
 export default function useQuote() {
   const [items, setItems] = useState<QuoteItem[]>([]);
   const [discountRate, setDiscountRate] = useState(0);
+  const [truncation, setTruncation] = useState<TruncationType>('none');
 
   // 항목 추가
   const addItem = useCallback((item: QuoteItem) => {
@@ -73,10 +96,16 @@ export default function useQuote() {
     setDiscountRate(Math.max(0, Math.min(100, rate)));
   }, []);
 
+  // 절삭 타입 변경
+  const updateTruncation = useCallback((type: TruncationType) => {
+    setTruncation(type);
+  }, []);
+
   // 전체 초기화
   const clearAll = useCallback(() => {
     setItems([]);
     setDiscountRate(0);
+    setTruncation('none');
   }, []);
 
   // 합계 계산
@@ -84,32 +113,41 @@ export default function useQuote() {
     const subtotal = items.reduce((sum, item) => sum + calcItemTotal(item), 0);
     const discountAmount = Math.round(subtotal * (discountRate / 100));
     const afterDiscount = subtotal - discountAmount;
-    // 부가세 포함 기준: 총액 = 공급가액 + 부가세, 총액이 afterDiscount
-    // 공급가액 = afterDiscount / 1.1 (소수점 반올림)
-    // 부가세 = afterDiscount - 공급가액
-    const supplyAmount = Math.round(afterDiscount / 1.1);
-    const vat = afterDiscount - supplyAmount;
+    
+    // 절삭 적용
+    const afterTruncation = applyTruncation(afterDiscount, truncation);
+    const truncationAmount = afterDiscount - afterTruncation;
+    
+    // 부가세 포함 기준: 총액 = 공급가액 + 부가세, 총액이 afterTruncation
+    // 공급가액 = afterTruncation / 1.1 (소수점 반올림)
+    // 부가세 = afterTruncation - 공급가액
+    const supplyAmount = Math.round(afterTruncation / 1.1);
+    const vat = afterTruncation - supplyAmount;
 
     return {
       subtotal,
       discountAmount,
       discountRate,
+      truncation,
+      truncationAmount,
       supplyAmount,
       vat,
-      grandTotal: afterDiscount,
+      grandTotal: afterTruncation,
       itemCount: items.length,
     };
-  }, [items, discountRate]);
+  }, [items, discountRate, truncation]);
 
   return {
     items,
     discountRate,
+    truncation,
     totals,
     addItem,
     removeItem,
     updateQuantity,
     updateUnitPrice,
     updateDiscountRate,
+    updateTruncation,
     clearAll,
   };
 }

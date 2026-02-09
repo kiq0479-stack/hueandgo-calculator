@@ -1,20 +1,35 @@
 'use client';
 
 import { useState } from 'react';
+import type { TruncationType } from '@/hooks/useQuote';
 
 interface DiscountControlProps {
   discountRate: number;
   onDiscountChange: (rate: number) => void;
+  truncation: TruncationType;
+  onTruncationChange: (type: TruncationType) => void;
   subtotal: number;
+  truncationAmount: number;
 }
 
 // 빠른 할인율 프리셋
 const PRESETS = [0, 5, 10, 15, 20, 30];
 
+// 절삭 옵션
+const TRUNCATION_OPTIONS: { value: TruncationType; label: string }[] = [
+  { value: 'none', label: '절삭없음' },
+  { value: '1', label: '일의자리 (10원 단위)' },
+  { value: '10', label: '십의자리 (100원 단위)' },
+  { value: '100', label: '백의자리 (1000원 단위)' },
+];
+
 export default function DiscountControl({
   discountRate,
   onDiscountChange,
+  truncation,
+  onTruncationChange,
   subtotal,
+  truncationAmount,
 }: DiscountControlProps) {
   const [customInput, setCustomInput] = useState(false);
   const discountAmount = Math.round(subtotal * (discountRate / 100));
@@ -83,6 +98,32 @@ export default function DiscountControl({
           <span className="text-sm text-gray-500">%</span>
         </div>
       )}
+
+      {/* 절삭 옵션 */}
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-semibold text-gray-700">금액 절삭</label>
+          {truncationAmount > 0 && (
+            <span className="text-xs text-orange-500">
+              -{truncationAmount.toLocaleString()}원
+            </span>
+          )}
+        </div>
+        <select
+          value={truncation}
+          onChange={(e) => onTruncationChange(e.target.value as TruncationType)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        >
+          {TRUNCATION_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-gray-400">
+          기관에서 &ldquo;60만원 맞춰주세요&rdquo; 요청 시 사용
+        </p>
+      </div>
     </div>
   );
 }
