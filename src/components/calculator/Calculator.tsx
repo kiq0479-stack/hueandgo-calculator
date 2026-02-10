@@ -32,31 +32,31 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const [addons, setAddons] = useState<AddonItem[]>([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // 제품 선택 시 상세정보 로드
+  // 제품 선택 시 상세정보 로드 (항상 옵션 조회 시도 - list API에 has_option 필드 없음)
   const handleProductSelect = useCallback(async (product: Cafe24Product) => {
     setSelectedProduct(product);
     setSelectedOptions({});
     setOptionAmounts({});
     setQuantity(1);
     setAddons([]);
+    setLoadingDetail(true);
 
-    if (product.has_option === 'T') {
-      setLoadingDetail(true);
-      try {
-        const res = await fetch(`/api/products?product_no=${product.product_no}`);
-        if (res.ok) {
-          const data = await res.json();
-          setProductOptions(data.options || []);
-          setVariants(data.variants || []);
-        }
-      } catch {
-        // 옵션 로드 실패 시 빈 상태로 유지
-      } finally {
-        setLoadingDetail(false);
+    try {
+      const res = await fetch(`/api/products?product_no=${product.product_no}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProductOptions(data.options || []);
+        setVariants(data.variants || []);
+      } else {
+        setProductOptions([]);
+        setVariants([]);
       }
-    } else {
+    } catch {
+      // 옵션 로드 실패 시 빈 상태로 유지
       setProductOptions([]);
       setVariants([]);
+    } finally {
+      setLoadingDetail(false);
     }
   }, []);
 

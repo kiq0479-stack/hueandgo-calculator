@@ -12,8 +12,14 @@ import type {
   Cafe24OptionsResponse,
 } from '@/types/cafe24';
 
-const MALL_ID = process.env.CAFE24_MALL_ID!;
-const BASE_URL = `https://${MALL_ID}.cafe24api.com/api/v2/admin`;
+// 환경변수 getter (런타임에 안전하게 접근)
+function getBaseUrl(): string {
+  const MALL_ID = process.env.CAFE24_MALL_ID;
+  if (!MALL_ID) {
+    throw new Error('CAFE24_MALL_ID 환경변수가 설정되지 않았습니다.');
+  }
+  return `https://${MALL_ID}.cafe24api.com/api/v2/admin`;
+}
 
 // 인증 헤더 생성
 async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -32,6 +38,7 @@ export async function fetchProducts(params?: {
   selling?: 'T' | 'F';
 }): Promise<Cafe24Product[]> {
   const headers = await getAuthHeaders();
+  const BASE_URL = getBaseUrl();
 
   const query = new URLSearchParams();
   if (params?.limit) query.set('limit', String(params.limit));
@@ -57,6 +64,7 @@ export async function fetchProductDetail(
   embed?: string[],
 ): Promise<Cafe24ProductDetail> {
   const headers = await getAuthHeaders();
+  const BASE_URL = getBaseUrl();
 
   const query = new URLSearchParams();
   if (embed?.length) query.set('embed', embed.join(','));
@@ -78,6 +86,7 @@ export async function fetchProductVariants(
   productNo: number,
 ): Promise<Cafe24Variant[]> {
   const headers = await getAuthHeaders();
+  const BASE_URL = getBaseUrl();
 
   const url = `${BASE_URL}/products/${productNo}/variants`;
   const response = await fetch(url, { headers });
@@ -96,6 +105,7 @@ export async function fetchProductOptions(
   productNo: number,
 ): Promise<Cafe24ProductOption[]> {
   const headers = await getAuthHeaders();
+  const BASE_URL = getBaseUrl();
 
   const url = `${BASE_URL}/products/${productNo}/options`;
   const response = await fetch(url, { headers });

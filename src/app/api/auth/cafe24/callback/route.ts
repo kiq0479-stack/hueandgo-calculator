@@ -36,12 +36,22 @@ export async function GET(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const redirectUri = `${appUrl}/api/auth/cafe24/callback`;
 
-    await exchangeCodeForToken(code, redirectUri);
+    const tokenData = await exchangeCodeForToken(code, redirectUri);
 
     // 인증 성공 → 메인 페이지로 리다이렉트
     const response = NextResponse.redirect(new URL('/?auth=success', request.url));
     // state 쿠키 제거
     response.cookies.delete('cafe24_oauth_state');
+    
+    // 토큰을 쿠키에 저장 (serverless 환경에서 유지)
+    response.cookies.set('cafe24_token', JSON.stringify(tokenData), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 14, // 14일 (refresh token 유효기간)
+      path: '/',
+    });
+    
     return response;
   } catch (err) {
     const message = err instanceof Error ? err.message : '토큰 교환 중 오류 발생';

@@ -1,10 +1,22 @@
 // 카페24 OAuth 2.0 인증 모듈
 
-const MALL_ID = process.env.CAFE24_MALL_ID!;
-const CLIENT_ID = process.env.CAFE24_CLIENT_ID!;
-const CLIENT_SECRET = process.env.CAFE24_CLIENT_SECRET!;
-
-const BASE_URL = `https://${MALL_ID}.cafe24api.com/api/v2`;
+// 환경변수 getter (런타임에 안전하게 접근)
+function getConfig() {
+  const MALL_ID = process.env.CAFE24_MALL_ID;
+  const CLIENT_ID = process.env.CAFE24_CLIENT_ID;
+  const CLIENT_SECRET = process.env.CAFE24_CLIENT_SECRET;
+  
+  if (!MALL_ID || !CLIENT_ID || !CLIENT_SECRET) {
+    throw new Error(`환경변수 누락: MALL_ID=${!!MALL_ID}, CLIENT_ID=${!!CLIENT_ID}, CLIENT_SECRET=${!!CLIENT_SECRET}`);
+  }
+  
+  return {
+    MALL_ID,
+    CLIENT_ID,
+    CLIENT_SECRET,
+    BASE_URL: `https://${MALL_ID}.cafe24api.com/api/v2`,
+  };
+}
 
 // 토큰 저장소 (서버 메모리 - MVP용, 프로덕션에서는 DB 사용)
 let tokenStore: TokenData | null = null;
@@ -35,6 +47,8 @@ interface Cafe24TokenResponse {
 
 // Authorization URL 생성
 export function getAuthorizationUrl(redirectUri: string, state: string): string {
+  const { CLIENT_ID, BASE_URL } = getConfig();
+  
   const scopes = [
     'mall.read_product',
     'mall.read_category',
@@ -57,6 +71,7 @@ export async function exchangeCodeForToken(
   code: string,
   redirectUri: string,
 ): Promise<TokenData> {
+  const { CLIENT_ID, CLIENT_SECRET, BASE_URL } = getConfig();
   const credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
 
   const response = await fetch(`${BASE_URL}/oauth/token`, {
@@ -74,7 +89,8 @@ export async function exchangeCodeForToken(
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`토큰 교환 실패: ${response.status} ${error}`);
+    // 디버깅: 환경변수 길이 확인
+    throw new Error(`토큰 교환 실패: ${response.status} ${error} [ID길이:${CLIENT_ID.length}, Secret길이:${CLIENT_SECRET.length}]`);
   }
 
   const data: Cafe24TokenResponse = await response.json();
@@ -88,6 +104,7 @@ export async function refreshAccessToken(): Promise<TokenData> {
     throw new Error('Refresh token이 없습니다. 재인증이 필요합니다.');
   }
 
+  const { CLIENT_ID, CLIENT_SECRET, BASE_URL } = getConfig();
   const credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
 
   const response = await fetch(`${BASE_URL}/oauth/token`, {
