@@ -9,6 +9,7 @@ import type {
   Cafe24Variant,
   Cafe24VariantsResponse,
   Cafe24ProductOption,
+  Cafe24OptionValue,
   Cafe24OptionsResponse,
 } from '@/types/cafe24';
 
@@ -119,6 +120,50 @@ export async function fetchProductOptions(
   return data.options;
 }
 
+// variants에서 옵션 목록 추출 (Cafe24 Options API 대안)
+function extractOptionsFromVariants(variants: Cafe24Variant[]): Cafe24ProductOption[] {
+  if (!variants.length) return [];
+
+  // 옵션별 값 수집
+  const optionMap = new Map<string, Map<string, string>>(); // optionName -> (optionValue -> additionalAmount)
+  
+  for (const variant of variants) {
+    if (!variant.options) continue;
+    for (const opt of variant.options) {
+      if (!optionMap.has(opt.name)) {
+        optionMap.set(opt.name, new Map());
+      }
+      // 같은 옵션값이면 첫 번째 additional_amount 유지 (variants마다 다를 수 있음)
+      if (!optionMap.get(opt.name)!.has(opt.value)) {
+        optionMap.get(opt.name)!.set(opt.value, variant.additional_amount);
+      }
+    }
+  }
+
+  // Cafe24ProductOption 형태로 변환
+  const options: Cafe24ProductOption[] = [];
+  let idx = 0;
+  for (const [optionName, valuesMap] of optionMap) {
+    const optionValues: Cafe24OptionValue[] = [];
+    for (const [text, amount] of valuesMap) {
+      optionValues.push({
+        option_text: text,
+        value_no: null,
+        additional_amount: amount,
+      });
+    }
+    options.push({
+      option_code: `extracted_${idx++}`,
+      option_name: optionName,
+      option_value: optionValues,
+      required_option: 'T',
+      option_display_type: 'S',
+    });
+  }
+
+  return options;
+}
+
 // 상품 상세 + 옵션 + 품목을 한 번에 가져오기
 export async function fetchProductWithDetails(productNo: number) {
   // Promise.allSettled로 실패해도 다른 것들은 가져오기
@@ -129,15 +174,21 @@ export async function fetchProductWithDetails(productNo: number) {
   ]);
 
   const product = productResult.status === 'fulfilled' ? productResult.value : null;
-  const options = optionsResult.status === 'fulfilled' ? optionsResult.value : [];
+  let options = optionsResult.status === 'fulfilled' ? optionsResult.value : [];
   const variants = variantsResult.status === 'fulfilled' ? variantsResult.value : [];
 
-  // 디버그: 실패한 요청 로그
+  // Options API 실패 또는 빈 배열이면 variants에서 추출
+  if (options.length === 0 && variants.length > 0) {
+    console.log('[INFO] Options API 빈 결과 → variants에서 옵션 추출');
+    options = extractOptionsFromVariants(variants);
+  }
+
+  // 디버그 로그
+  console.log('[DEBUG] product:', product?.product_name);
+  console.log('[DEBUG] options count:', options.length);
+  console.log('[DEBUG] variants count:', variants.length);
   if (optionsResult.status === 'rejected') {
     console.log('[DEBUG] fetchProductOptions failed:', optionsResult.reason?.message || optionsResult.reason);
-  }
-  if (variantsResult.status === 'rejected') {
-    console.log('[DEBUG] fetchProductVariants failed:', variantsResult.reason?.message || variantsResult.reason);
   }
 
   return { product, options, variants };
