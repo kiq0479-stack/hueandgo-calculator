@@ -128,6 +128,14 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
         <p className="text-sm text-gray-500">옵션 정보 불러오는 중...</p>
       )}
 
+      {/* DEBUG: 옵션/variants 개수 표시 */}
+      {selectedProduct && !loadingDetail && (
+        <div className="text-xs text-gray-400 bg-yellow-50 p-2 rounded">
+          [DEBUG] options: {productOptions.length}개, variants: {variants.length}개
+          {productOptions.length === 0 && variants.length > 0 && ' → variants에서 옵션 추출 필요'}
+        </div>
+      )}
+
       {/* 옵션 선택 */}
       {!loadingDetail && productOptions.length > 0 && (
         <OptionSelector
