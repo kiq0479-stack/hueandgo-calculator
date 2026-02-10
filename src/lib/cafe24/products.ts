@@ -121,11 +121,24 @@ export async function fetchProductOptions(
 
 // 상품 상세 + 옵션 + 품목을 한 번에 가져오기
 export async function fetchProductWithDetails(productNo: number) {
-  const [product, options, variants] = await Promise.all([
+  // Promise.allSettled로 실패해도 다른 것들은 가져오기
+  const [productResult, optionsResult, variantsResult] = await Promise.allSettled([
     fetchProductDetail(productNo),
     fetchProductOptions(productNo),
     fetchProductVariants(productNo),
   ]);
+
+  const product = productResult.status === 'fulfilled' ? productResult.value : null;
+  const options = optionsResult.status === 'fulfilled' ? optionsResult.value : [];
+  const variants = variantsResult.status === 'fulfilled' ? variantsResult.value : [];
+
+  // 디버그: 실패한 요청 로그
+  if (optionsResult.status === 'rejected') {
+    console.log('[DEBUG] fetchProductOptions failed:', optionsResult.reason?.message || optionsResult.reason);
+  }
+  if (variantsResult.status === 'rejected') {
+    console.log('[DEBUG] fetchProductVariants failed:', variantsResult.reason?.message || variantsResult.reason);
+  }
 
   return { product, options, variants };
 }
