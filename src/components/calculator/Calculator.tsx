@@ -42,7 +42,9 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     setLoadingDetail(true);
 
     try {
-      const res = await fetch(`/api/products?product_no=${product.product_no}`);
+      const res = await fetch(`/api/products?product_no=${product.product_no}`, {
+        credentials: 'include', // 쿠키 포함
+      });
       if (res.ok) {
         const data = await res.json();
         setProductOptions(data.options || []);

@@ -22,7 +22,7 @@ export default function ProductSelector({ onSelect, selectedProductNo }: Product
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/products');
+      const res = await fetch('/api/products', { credentials: 'include' });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || '상품 조회 실패');
