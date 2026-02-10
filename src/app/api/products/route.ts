@@ -38,11 +38,21 @@ export async function GET(request: NextRequest) {
   try {
     // 상품 상세 조회 (product_no 파라미터 있을 때)
     if (productNo) {
-      const data = await fetchProductWithDetails(Number(productNo));
-      console.log('[DEBUG] fetchProductWithDetails result keys:', Object.keys(data));
-      console.log('[DEBUG] options count:', data.options?.length ?? 'undefined');
-      console.log('[DEBUG] variants count:', data.variants?.length ?? 'undefined');
-      return NextResponse.json(data);
+      try {
+        const data = await fetchProductWithDetails(Number(productNo));
+        console.log('[DEBUG] fetchProductWithDetails result keys:', Object.keys(data));
+        console.log('[DEBUG] options count:', data.options?.length ?? 'undefined');
+        console.log('[DEBUG] variants count:', data.variants?.length ?? 'undefined');
+        return NextResponse.json(data);
+      } catch (detailError) {
+        const msg = detailError instanceof Error ? detailError.message : String(detailError);
+        console.error('[ERROR] fetchProductWithDetails failed:', msg);
+        return NextResponse.json({ 
+          error: msg, 
+          debug: 'fetchProductWithDetails 실패',
+          product_no: productNo 
+        }, { status: 500 });
+      }
     }
 
     // 상품 목록 조회
