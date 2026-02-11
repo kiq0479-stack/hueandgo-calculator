@@ -200,9 +200,14 @@ export async function fetchProductWithDetails(productNo: number) {
     console.log('[DEBUG] fetchProductOptions failed:', optionsApiError);
   }
 
-  // 추가구성상품
+  // 추가구성상품 (Cafe24 API 응답 구조 확인)
+  console.log('[DEBUG] product keys:', product ? Object.keys(product) : 'null');
   const additionalProducts = product?.additionalproducts || [];
   console.log('[DEBUG] additionalProducts count:', additionalProducts.length);
+  console.log('[DEBUG] additionalProducts raw:', JSON.stringify(product?.additionalproducts)?.slice(0, 500));
 
-  return { product, options, variants, additionalProducts, optionsApiError };
+  // 디버그: product의 모든 키
+  const productKeys = product ? Object.keys(product) : [];
+  
+  return { product, options, variants, additionalProducts, optionsApiError, productKeys };
 }
