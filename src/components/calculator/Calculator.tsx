@@ -6,6 +6,7 @@ import ProductSelector from './ProductSelector';
 import OptionSelector from './OptionSelector';
 import QuantityInput from './QuantityInput';
 import AddonSelector, { type AddonItem } from './AddonSelector';
+import Cafe24AddonSelector, { type SelectedAddon } from './Cafe24AddonSelector';
 
 // 견적에 추가할 아이템
 export interface QuoteItem {
@@ -16,6 +17,7 @@ export interface QuoteItem {
   quantity: number;
   unitPrice: number; // 기본가 + 옵션추가금
   addons: AddonItem[];
+  cafe24Addons: SelectedAddon[]; // Cafe24 추가구성상품
 }
 
 interface CalculatorProps {
@@ -32,6 +34,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const [optionAmounts, setOptionAmounts] = useState<Record<string, number>>({});
   const [quantity, setQuantity] = useState(1);
   const [addons, setAddons] = useState<AddonItem[]>([]);
+  const [cafe24Addons, setCafe24Addons] = useState<SelectedAddon[]>([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   // 제품 선택 시 상세정보 로드 (항상 옵션 조회 시도 - list API에 has_option 필드 없음)
@@ -41,6 +44,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     setOptionAmounts({});
     setQuantity(1);
     setAddons([]);
+    setCafe24Addons([]);
     setOptionsApiError(null);
     setLoadingDetail(true);
 
@@ -96,7 +100,11 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const optionExtra = matchingVariant ? Number(matchingVariant.additional_amount) : 0;
   const unitPrice = basePrice + optionExtra;
   const addonTotal = addons.reduce((sum, a) => sum + a.unitPrice * a.quantity, 0);
-  const totalPrice = unitPrice * quantity + addonTotal;
+  const cafe24AddonTotal = cafe24Addons.reduce(
+    (sum, a) => sum + Number(a.product.price) * a.quantity,
+    0
+  );
+  const totalPrice = unitPrice * quantity + addonTotal + cafe24AddonTotal;
 
   // 견적에 추가
   function handleAddToQuote() {
@@ -110,6 +118,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
       quantity,
       unitPrice,
       addons: [...addons],
+      cafe24Addons: [...cafe24Addons],
     };
 
     onAddToQuote?.(item);
@@ -119,6 +128,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     setOptionAmounts({});
     setQuantity(1);
     setAddons([]);
+    setCafe24Addons([]);
   }
 
   // 필수옵션 모두 선택했는지 확인
@@ -175,7 +185,16 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
         <QuantityInput quantity={quantity} onChange={setQuantity} />
       )}
 
-      {/* 추가상품 */}
+      {/* Cafe24 추가구성상품 (API에서 가져온 것) */}
+      {selectedProduct && !loadingDetail && additionalProducts.length > 0 && (
+        <Cafe24AddonSelector
+          additionalProducts={additionalProducts}
+          selectedAddons={cafe24Addons}
+          onAddonsChange={setCafe24Addons}
+        />
+      )}
+
+      {/* 수동 추가상품 */}
       {selectedProduct && (
         <AddonSelector addons={addons} onAddonsChange={setAddons} />
       )}
@@ -200,9 +219,15 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
             <span>소계</span>
             <span>{(unitPrice * quantity).toLocaleString()}원</span>
           </div>
+          {cafe24AddonTotal > 0 && (
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>추가구성상품</span>
+              <span>+{cafe24AddonTotal.toLocaleString()}원</span>
+            </div>
+          )}
           {addonTotal > 0 && (
             <div className="flex justify-between text-sm text-gray-600">
-              <span>추가상품</span>
+              <span>수동추가상품</span>
               <span>+{addonTotal.toLocaleString()}원</span>
             </div>
           )}
