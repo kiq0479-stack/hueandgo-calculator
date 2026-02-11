@@ -190,7 +190,7 @@ export default function QuoteItemList({
       memoText,
     };
     localStorage.setItem('quoteFormSettings', JSON.stringify(settings));
-    alert('양식이 저장되었습니다!');
+    alert('브랜디즈 양식이 저장되었습니다!');
   };
 
   // 수동 행 추가
