@@ -241,23 +241,23 @@ export default function HotangQuoteForm({
             </div>
           </div>
           
-          {/* 오른쪽: 사업자정보 테이블 */}
-          <div className="border-l border-black" style={{ width: `${100 - leftWidth}%` }}>
-            <table className="w-full text-[10px] border-collapse">
+          {/* 오른쪽: 사업자정보 테이블 - inline style로 테두리 통일 */}
+          <div style={{ width: `${100 - leftWidth}%`, borderLeft: '1px solid black' }}>
+            <table className="w-full text-[10px]" style={{ borderCollapse: 'collapse' }}>
               <tbody>
-                <tr className="border-b border-black h-6">
-                  <td className="border-r border-black px-1 bg-gray-50 w-16">사업자 번호</td>
-                  <td className="px-1" colSpan={3}>
+                <tr style={{ height: '24px' }}>
+                  <td className="px-1 bg-gray-50" style={{ border: '1px solid black', width: '64px' }}>사업자 번호</td>
+                  <td className="px-1" colSpan={3} style={{ border: '1px solid black' }}>
                     <input type="text" value={bizRegNo} onChange={(e) => setBizRegNo(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
-                <tr className="border-b border-black h-6">
-                  <td className="border-r border-black px-1 bg-gray-50">상호</td>
-                  <td className="border-r border-black px-1">
+                <tr style={{ height: '24px' }}>
+                  <td className="px-1 bg-gray-50" style={{ border: '1px solid black' }}>상호</td>
+                  <td className="px-1" style={{ border: '1px solid black' }}>
                     <input type="text" value={bizName} onChange={(e) => setBizName(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
-                  <td className="border-l border-r border-black px-1 bg-gray-50 w-12">대표자</td>
-                  <td className="px-1 relative pr-10">
+                  <td className="px-1 bg-gray-50" style={{ border: '1px solid black', width: '48px' }}>대표자</td>
+                  <td className="px-1 relative pr-10" style={{ border: '1px solid black' }}>
                     <input type="text" value={bizCeo} onChange={(e) => setBizCeo(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                     {/* 호탱감탱 도장 */}
                     <img 
@@ -274,25 +274,25 @@ export default function HotangQuoteForm({
                     />
                   </td>
                 </tr>
-                <tr className="border-b border-black h-6">
-                  <td className="border-r border-black px-1 bg-gray-50">소재지</td>
-                  <td className="px-1" colSpan={3}>
+                <tr style={{ height: '24px' }}>
+                  <td className="px-1 bg-gray-50" style={{ border: '1px solid black' }}>소재지</td>
+                  <td className="px-1" colSpan={3} style={{ border: '1px solid black' }}>
                     <input type="text" value={bizAddress} onChange={(e) => setBizAddress(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
-                <tr className="border-b border-black h-6">
-                  <td className="border-r border-black px-1 bg-gray-50">업태</td>
-                  <td className="border-r border-black px-1">
+                <tr style={{ height: '24px' }}>
+                  <td className="px-1 bg-gray-50" style={{ border: '1px solid black' }}>업태</td>
+                  <td className="px-1" style={{ border: '1px solid black' }}>
                     <input type="text" value={bizType} onChange={(e) => setBizType(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
-                  <td className="border-l border-r border-black px-1 bg-gray-50 w-12">업종</td>
-                  <td className="px-1">
+                  <td className="px-1 bg-gray-50" style={{ border: '1px solid black', width: '48px' }}>업종</td>
+                  <td className="px-1" style={{ border: '1px solid black' }}>
                     <input type="text" value={bizItem} onChange={(e) => setBizItem(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
-                <tr className="h-6">
-                  <td className="border-r border-black px-1 bg-gray-50">전화번호</td>
-                  <td className="px-1" colSpan={3}>
+                <tr style={{ height: '24px' }}>
+                  <td className="px-1 bg-gray-50" style={{ border: '1px solid black' }}>전화번호</td>
+                  <td className="px-1" colSpan={3} style={{ border: '1px solid black' }}>
                     <input type="text" value={bizPhone} onChange={(e) => setBizPhone(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
