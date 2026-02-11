@@ -115,26 +115,26 @@ export default function QuoteItemList({
           </div>
           
           {/* 오른쪽: 사업자정보 테이블 */}
-          <div className="w-[240px] border border-gray-400">
+          <div className="w-[280px] border border-gray-400">
             <div className="flex h-6 border-b border-gray-300">
-              <div className="w-20 px-1 flex items-center bg-gray-50 border-r border-gray-300">사업자소재지</div>
-              <div className="flex-1 px-1 flex items-center text-[10px]">울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동</div>
+              <div className="w-16 px-1 flex items-center bg-gray-50 border-r border-gray-300 whitespace-nowrap">사업자소재지</div>
+              <div className="flex-1 px-1 flex items-center whitespace-nowrap">울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동</div>
             </div>
-            <div className="flex h-6 border-b border-gray-300">
-              <div className="w-20 px-1 flex items-center bg-gray-50 border-r border-gray-300">상호</div>
+            <div className="flex h-8 border-b border-gray-300">
+              <div className="w-16 px-1 flex items-center bg-gray-50 border-r border-gray-300">상호</div>
               <div className="flex-1 px-1 flex items-center justify-between">
                 <span>주식회사 브랜디즈</span>
-                <div className="w-8 h-8 rounded-full border-2 border-red-400 flex items-center justify-center text-red-500 text-[7px] font-bold -mr-1">
+                <div className="w-7 h-7 rounded-full border-2 border-red-400 flex items-center justify-center text-red-500 font-bold">
                   인
                 </div>
               </div>
             </div>
             <div className="flex h-6 border-b border-gray-300">
-              <div className="w-20 px-1 flex items-center bg-gray-50 border-r border-gray-300">대표자성명</div>
+              <div className="w-16 px-1 flex items-center bg-gray-50 border-r border-gray-300">대표자성명</div>
               <div className="flex-1 px-1 flex items-center">감민주</div>
             </div>
             <div className="flex h-6">
-              <div className="w-20 px-1 flex items-center bg-gray-50 border-r border-gray-300">전화번호</div>
+              <div className="w-16 px-1 flex items-center bg-gray-50 border-r border-gray-300">전화번호</div>
               <div className="flex-1 px-1 flex items-center">010-2116-2349</div>
             </div>
           </div>
