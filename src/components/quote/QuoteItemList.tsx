@@ -127,6 +127,13 @@ export default function QuoteItemList({
     note: 36,    // 비고 열 (px)
   });
 
+  // MEMO 상태
+  const [memoText, setMemoText] = useState('*배송은 택배시 무료입니다.');
+
+  // 수동 입력 행 상태
+  type ManualRow = { id: string; name: string; qty: number; price: number };
+  const [manualRows, setManualRows] = useState<ManualRow[]>([]);
+
   // 컴포넌트 마운트 시 저장된 양식 불러오기 + 오늘 날짜 설정
   useEffect(() => {
     setQuoteDate(getTodayISO());
@@ -146,6 +153,7 @@ export default function QuoteItemList({
         if (settings.leftWidth !== undefined) setLeftWidth(settings.leftWidth);
         if (settings.bizLabelWidth !== undefined) setBizLabelWidth(settings.bizLabelWidth);
         if (settings.colWidths) setColWidths(settings.colWidths);
+        if (settings.memoText) setMemoText(settings.memoText);
       } catch (e) {
         console.error('Failed to load saved settings:', e);
       }
@@ -165,17 +173,33 @@ export default function QuoteItemList({
       leftWidth,
       bizLabelWidth,
       colWidths,
+      memoText,
     };
     localStorage.setItem('quoteFormSettings', JSON.stringify(settings));
     alert('양식이 저장되었습니다!');
   };
 
-  const rows = [...items];
-  while (rows.length < MAX_ROWS) {
-    rows.push(null as unknown as QuoteItemType);
-  }
+  // 수동 행 추가
+  const addManualRow = () => {
+    setManualRows(prev => [...prev, { id: `manual-${Date.now()}`, name: '', qty: 1, price: 0 }]);
+  };
 
-  const grandTotal = Math.round(totals.grandTotal);
+  // 수동 행 업데이트
+  const updateManualRow = (id: string, field: keyof ManualRow, value: string | number) => {
+    setManualRows(prev => prev.map(row => row.id === id ? { ...row, [field]: value } : row));
+  };
+
+  // 수동 행 삭제
+  const removeManualRow = (id: string) => {
+    setManualRows(prev => prev.filter(row => row.id !== id));
+  };
+
+  // 수동 행 합계
+  const manualTotal = manualRows.reduce((sum, row) => sum + (row.qty * row.price), 0);
+  const grandTotal = Math.round(totals.grandTotal) + manualTotal;
+
+  // 전체 행 (API 아이템 + 수동 행 합쳐서 MAX_ROWS까지)
+  const totalItemCount = items.length + manualRows.length;
 
   return (
     <div className="space-y-3">
@@ -341,24 +365,9 @@ export default function QuoteItemList({
               </tr>
             </thead>
             <tbody>
-              {rows.map((item, index) => {
+              {/* API 아이템 */}
+              {items.map((item, index) => {
                 const rowNum = index + 1;
-                const showEA = rowNum <= 6;
-                
-                if (!item) {
-                  return (
-                    <tr key={`empty-${index}`}>
-                      <td className="border-b border-r border-black px-1 py-1.5 text-center">{rowNum}</td>
-                      <td className="border-b border-r border-black px-1 py-1.5"></td>
-                      <td className="border-b border-r border-black px-1 py-1.5 text-center">{showEA ? 'EA' : ''}</td>
-                      <td className="border-b border-r border-black px-1 py-1.5"></td>
-                      <td className="border-b border-r border-black px-1 py-1.5"></td>
-                      <td className="border-b border-r border-black px-1 py-1.5 text-center">-</td>
-                      <td className="border-b border-black px-1 py-1.5"></td>
-                    </tr>
-                  );
-                }
-
                 const itemTotal = calcItemTotal(item);
                 const itemTotalWithVat = Math.round(itemTotal);
                 const optionStr = Object.values(item.selectedOptions || {}).join(' ');
@@ -411,6 +420,77 @@ export default function QuoteItemList({
                   </tr>
                 );
               })}
+              {/* 수동 입력 행 */}
+              {manualRows.map((row, index) => {
+                const rowNum = items.length + index + 1;
+                const rowTotal = row.qty * row.price;
+                return (
+                  <tr key={row.id} className="group hover:bg-green-50">
+                    <td className="border-b border-r border-black px-1 py-0.5 text-center">{rowNum}</td>
+                    <td className="border-b border-r border-black px-1 py-0.5">
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={row.name}
+                          onChange={(e) => updateManualRow(row.id, 'name', e.target.value)}
+                          placeholder="품명 입력"
+                          className="flex-1 bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeManualRow(row.id)}
+                          className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </td>
+                    <td className="border-b border-r border-black px-1 py-0.5 text-center">EA</td>
+                    <td className="border-b border-r border-black px-0.5 py-0.5 text-center">
+                      <input
+                        type="text"
+                        value={row.qty.toLocaleString()}
+                        onChange={(e) => {
+                          const num = Number(e.target.value.replace(/,/g, ''));
+                          if (!isNaN(num)) updateManualRow(row.id, 'qty', Math.max(1, num));
+                        }}
+                        className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
+                      />
+                    </td>
+                    <td className="border-b border-r border-black px-0.5 py-0.5">
+                      <input
+                        type="text"
+                        value={row.price.toLocaleString()}
+                        onChange={(e) => {
+                          const num = Number(e.target.value.replace(/,/g, ''));
+                          if (!isNaN(num)) updateManualRow(row.id, 'price', Math.max(0, num));
+                        }}
+                        className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
+                      />
+                    </td>
+                    <td className="border-b border-r border-black px-1 py-0.5 text-right">
+                      {rowTotal.toLocaleString()}
+                    </td>
+                    <td className="border-b border-black px-1 py-0.5"></td>
+                  </tr>
+                );
+              })}
+              {/* 빈 행 (최소 9행까지 채우기) */}
+              {Array.from({ length: Math.max(0, MAX_ROWS - totalItemCount) }).map((_, index) => {
+                const rowNum = totalItemCount + index + 1;
+                const showEA = rowNum <= 6;
+                return (
+                  <tr key={`empty-${index}`}>
+                    <td className="border-b border-r border-black px-1 py-1.5 text-center">{rowNum}</td>
+                    <td className="border-b border-r border-black px-1 py-1.5"></td>
+                    <td className="border-b border-r border-black px-1 py-1.5 text-center">{showEA ? 'EA' : ''}</td>
+                    <td className="border-b border-r border-black px-1 py-1.5"></td>
+                    <td className="border-b border-r border-black px-1 py-1.5"></td>
+                    <td className="border-b border-r border-black px-1 py-1.5 text-center">-</td>
+                    <td className="border-b border-black px-1 py-1.5"></td>
+                  </tr>
+                );
+              })}
             </tbody>
             <tfoot>
               <tr>
@@ -427,9 +507,15 @@ export default function QuoteItemList({
         </div>
         
         {/* [MEMO] */}
-        <div className="mx-2 mt-1 border border-black px-2 py-1 min-h-[50px]">
+        <div className="mx-2 mt-1 border border-black px-2 py-1">
           <div className="font-medium">[MEMO]</div>
-          <div className="mt-1">*배송은 택배시 무료입니다.</div>
+          <textarea
+            value={memoText}
+            onChange={(e) => setMemoText(e.target.value)}
+            className="w-full mt-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px] resize-none"
+            rows={3}
+            placeholder="메모 입력..."
+          />
         </div>
         
         <div className="h-2"></div>
@@ -540,6 +626,15 @@ export default function QuoteItemList({
           </div>
         </div>
       </details>
+
+      {/* 수동 입력 추가 버튼 */}
+      <button
+        type="button"
+        onClick={addManualRow}
+        className="w-full rounded border border-green-300 bg-green-50 px-3 py-1.5 text-[11px] text-green-600 hover:bg-green-100"
+      >
+        ➕ 수동 항목 추가
+      </button>
 
       {/* 양식 저장 버튼 */}
       <button
