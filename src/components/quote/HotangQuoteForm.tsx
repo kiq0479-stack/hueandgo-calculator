@@ -218,13 +218,16 @@ export default function HotangQuoteForm({
               onChange={(e) => setDescLine2(e.target.value)}
               className="mb-1 bg-transparent border-0 focus:outline-none text-[11px] w-full"
             />
-            <div className="mb-2 flex items-center gap-2">
-              <span>{formatDateKorean(quoteDate)}</span>
+            <div className="mb-2 relative h-5">
+              <span className="absolute inset-0 flex items-center pointer-events-none z-0">
+                {formatDateKorean(quoteDate)}
+              </span>
               <input
                 type="date"
                 value={quoteDate}
                 onChange={(e) => setQuoteDate(e.target.value)}
-                className="border border-gray-300 rounded px-1 py-0.5 text-[10px] cursor-pointer"
+                className="absolute inset-0 w-full h-full bg-transparent border-0 focus:outline-none cursor-pointer z-10"
+                style={{ color: 'transparent' }}
               />
             </div>
             <div className="flex items-center">
