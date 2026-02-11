@@ -172,21 +172,14 @@ export default function QuoteItemList({
           </div>
           
           {/* 오른쪽: 사업자정보 테이블 (왼쪽과 gap으로 떨어짐) */}
-          <div className="w-[55%] shrink-0 border border-black text-[10px]">
+          <div className="w-[55%] shrink-0 border border-black text-[10px] relative">
             <div className="flex h-6 border-b border-black">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">사업자소재지</div>
               <div className="flex-1 px-1 flex items-center text-[9px]">울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동</div>
             </div>
-            <div className="flex h-10 border-b border-black">
+            <div className="flex h-6 border-b border-black">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">상호</div>
-              <div className="flex-1 px-1 flex items-center justify-between">
-                <span>주식회사 브랜디즈</span>
-                <img 
-                  src="/stamp-brandiz.png" 
-                  alt="인" 
-                  className="h-9 w-9 object-contain shrink-0"
-                />
-              </div>
+              <div className="flex-1 px-1 flex items-center">주식회사 브랜디즈</div>
             </div>
             <div className="flex h-6 border-b border-black">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">대표자성명</div>
@@ -196,6 +189,12 @@ export default function QuoteItemList({
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">전화번호</div>
               <div className="flex-1 px-1 flex items-center">010-2116-2349</div>
             </div>
+            {/* 도장 - 상호와 대표자성명 사이에 걸침 */}
+            <img 
+              src="/stamp-brandiz.png" 
+              alt="인" 
+              className="absolute right-2 top-[18px] h-10 w-10 object-contain"
+            />
           </div>
         </div>
         
