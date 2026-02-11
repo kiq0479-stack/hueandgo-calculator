@@ -129,9 +129,9 @@ export default function QuoteItemList({
         <div className="h-2"></div>
         
         {/* 날짜/수신/참조 + 사업자정보 테이블 */}
-        <div className="flex mx-2 gap-4">
+        <div className="flex mx-2">
           {/* 왼쪽: 날짜, 수신, 참조 (입력 가능) */}
-          <div className="w-[38%]">
+          <div className="w-[42%] pr-3">
             <div className="flex h-6">
               <div className="w-12 flex items-center shrink-0">날 짜 :</div>
               <div className="flex-1 border-b border-black">
@@ -171,11 +171,11 @@ export default function QuoteItemList({
             <div className="h-6"></div>
           </div>
           
-          {/* 오른쪽: 사업자정보 테이블 (왼쪽과 gap으로 떨어짐) */}
-          <div className="w-[55%] shrink-0 border border-black text-[10px] relative">
+          {/* 오른쪽: 사업자정보 테이블 */}
+          <div className="w-[58%] border border-black text-[10px] relative">
             <div className="flex h-6 border-b border-black">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">사업자소재지</div>
-              <div className="flex-1 px-1 flex items-center text-[9px]">울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동</div>
+              <div className="flex-1 px-1 flex items-center text-[9px] truncate">울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동</div>
             </div>
             <div className="flex h-6 border-b border-black">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">상호</div>
