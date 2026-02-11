@@ -287,7 +287,7 @@ export default function QuoteItemList({
                         className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     </td>
-                    <td className="border-b border-r border-black px-0.5 py-0.5 text-center">
+                    <td className="border-b border-r border-black px-0.5 py-0.5">
                       <input
                         type="text"
                         value={item.unitPrice.toLocaleString()}
@@ -295,10 +295,10 @@ export default function QuoteItemList({
                           const num = Number(e.target.value.replace(/,/g, ''));
                           if (!isNaN(num)) onUpdateUnitPrice(item.id, Math.max(0, num));
                         }}
-                        className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
+                        className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
                       />
                     </td>
-                    <td className="border-b border-r border-black px-1 py-0.5 text-center">
+                    <td className="border-b border-r border-black px-1 py-0.5 text-right">
                       {itemTotalWithVat.toLocaleString()}
                     </td>
                     <td className="border-b border-black px-1 py-0.5"></td>
@@ -311,7 +311,7 @@ export default function QuoteItemList({
                 <td colSpan={5} className="border-b border-r border-black px-1 py-1.5 text-center font-medium">
                   합 계
                 </td>
-                <td className="border-b border-r border-black px-1 py-1.5 text-center font-medium">
+                <td className="border-b border-r border-black px-1 py-1.5 text-right font-medium">
                   {grandTotal > 0 ? grandTotal.toLocaleString() : '-'}
                 </td>
                 <td className="border-b border-black px-1 py-1.5"></td>
