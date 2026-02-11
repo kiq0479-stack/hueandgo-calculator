@@ -60,7 +60,26 @@ export default function ExportButtons({
     const dateStr = dateParts.length === 3 
       ? `${dateParts[0].slice(2)}.${dateParts[1]}.${dateParts[2]}` 
       : dateValue.replace(/-/g, '');
-    return `(휴앤고) ${recipient} 굿즈 주문제작 ${docType}_${dateStr}`;
+    
+    // 수신처가 없거나 '미입력'이면 빈 문자열
+    const recipientPart = (recipient && recipient !== '미입력') ? recipient : '';
+    
+    // 호탱감탱 vs 브랜디즈 파일명 형식 다름
+    if (formData.templateId === 'hotanggamtang') {
+      // 호탱감탱 - 수신처 주문제작 굿즈 견적서_날짜
+      if (recipientPart) {
+        return `호탱감탱 - ${recipientPart} 주문제작 굿즈 ${docType}_${dateStr}`;
+      } else {
+        return `호탱감탱 - 주문제작 굿즈 ${docType}_${dateStr}`;
+      }
+    } else {
+      // (휴앤고) 수신처 굿즈 주문제작 견적서_날짜
+      if (recipientPart) {
+        return `(휴앤고) ${recipientPart} 굿즈 주문제작 ${docType}_${dateStr}`;
+      } else {
+        return `(휴앤고) 굿즈 주문제작 ${docType}_${dateStr}`;
+      }
+    }
   }
 
   // PDF 다운로드
