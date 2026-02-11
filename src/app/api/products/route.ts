@@ -43,6 +43,8 @@ export async function GET(request: NextRequest) {
         console.log('[DEBUG] fetchProductWithDetails result keys:', Object.keys(data));
         console.log('[DEBUG] options count:', data.options?.length ?? 'undefined');
         console.log('[DEBUG] variants count:', data.variants?.length ?? 'undefined');
+        console.log('[DEBUG] additionalProducts count:', data.additionalProducts?.length ?? 'undefined');
+        console.log('[DEBUG] additionalProducts sample:', JSON.stringify(data.additionalProducts?.[0] || null));
         return NextResponse.json(data);
       } catch (detailError) {
         const msg = detailError instanceof Error ? detailError.message : String(detailError);

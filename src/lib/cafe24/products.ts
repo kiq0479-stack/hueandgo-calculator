@@ -115,17 +115,28 @@ export async function fetchAdditionalProducts(
 
   const url = `${BASE_URL}/products/${productNo}/additionalproducts`;
   console.log('[DEBUG] Fetching additionalproducts from:', url);
-  const response = await fetch(url, { headers });
+  
+  try {
+    const response = await fetch(url, { headers });
 
-  if (!response.ok) {
-    const error = await response.text();
-    console.log('[DEBUG] additionalproducts API error:', response.status, error);
-    throw new Error(`추가구성상품 조회 실패 (${productNo}): ${response.status} ${error}`);
+    if (!response.ok) {
+      const error = await response.text();
+      console.log('[DEBUG] additionalproducts API error:', response.status, error);
+      // 404는 추가구성상품이 없는 경우일 수 있음 - 에러 던지지 않고 빈 배열 반환
+      if (response.status === 404) {
+        console.log('[DEBUG] additionalproducts: 404 - 해당 상품에 추가구성상품 없음');
+        return [];
+      }
+      throw new Error(`추가구성상품 조회 실패 (${productNo}): ${response.status} ${error}`);
+    }
+
+    const data = await response.json();
+    console.log('[DEBUG] additionalproducts raw response:', JSON.stringify(data).slice(0, 1000));
+    return data.additionalproducts || [];
+  } catch (err) {
+    console.log('[DEBUG] fetchAdditionalProducts exception:', err);
+    throw err;
   }
-
-  const data = await response.json();
-  console.log('[DEBUG] additionalproducts response:', JSON.stringify(data).slice(0, 500));
-  return data.additionalproducts || [];
 }
 
 // 상품 옵션 정의 조회
@@ -223,12 +234,20 @@ export async function fetchProductWithDetails(productNo: number) {
     console.log('[DEBUG] fetchProductOptions failed:', optionsApiError);
   }
 
-  // 추가구성상품 (별도 API에서 가져옴)
-  const additionalProducts = additionalResult.status === 'fulfilled' ? (additionalResult.value || []) : [];
-  console.log('[DEBUG] additionalProducts count:', additionalProducts.length);
+  // 추가구성상품 (별도 API 또는 상품 상세의 embed에서 가져옴)
+  let additionalProducts = additionalResult.status === 'fulfilled' ? (additionalResult.value || []) : [];
+  console.log('[DEBUG] additionalProducts from API count:', additionalProducts.length);
   if (additionalResult.status === 'rejected') {
     console.log('[DEBUG] fetchAdditionalProducts failed:', additionalResult.reason?.message || additionalResult.reason);
   }
+  
+  // 별도 API 실패 시 상품 상세의 additionalproducts에서 가져오기 시도
+  const embeddedAddons = product?.additionalproducts;
+  if (additionalProducts.length === 0 && embeddedAddons && embeddedAddons.length > 0) {
+    console.log('[DEBUG] Using additionalproducts from product detail embed');
+    additionalProducts = embeddedAddons;
+  }
+  console.log('[DEBUG] final additionalProducts count:', additionalProducts.length);
 
   return { product, options, variants, additionalProducts, optionsApiError };
 }
