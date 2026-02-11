@@ -21,11 +21,33 @@ export async function downloadPdf({ elementId, fileName }: PdfOptions): Promise<
   }
 
   // html2canvas로 DOM 캡처
+  // onclone: input 요소를 span으로 교체하여 텍스트가 잘리지 않게 함
   const canvas = await html2canvas(element, {
-    scale: 2,
+    scale: 3,
     useCORS: true,
     backgroundColor: '#ffffff',
     logging: false,
+    onclone: (clonedDoc, clonedElement) => {
+      // 모든 input[type="text"]를 span으로 교체
+      const textInputs = clonedElement.querySelectorAll('input[type="text"]');
+      textInputs.forEach((input) => {
+        const inp = input as HTMLInputElement;
+        const span = clonedDoc.createElement('span');
+        span.textContent = inp.value || '';
+        span.style.cssText = window.getComputedStyle(inp).cssText;
+        span.style.display = 'inline-block';
+        span.style.width = inp.offsetWidth + 'px';
+        span.style.whiteSpace = 'nowrap';
+        span.style.overflow = 'visible';
+        inp.parentNode?.replaceChild(span, inp);
+      });
+      // date input도 처리
+      const dateInputs = clonedElement.querySelectorAll('input[type="date"]');
+      dateInputs.forEach((input) => {
+        const inp = input as HTMLInputElement;
+        inp.style.display = 'none';
+      });
+    },
   });
 
   const imgData = canvas.toDataURL('image/png');

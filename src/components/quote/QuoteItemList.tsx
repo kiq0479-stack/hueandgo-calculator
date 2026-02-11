@@ -125,15 +125,15 @@ export default function QuoteItemList({
   const [stampSize, setStampSize] = useState(40);
 
   // 레이아웃 상태
-  const [leftWidth, setLeftWidth] = useState(36); // 날짜/수신/참조 영역 너비 (%) - 사업자정보 영역 넓히기
-  const [bizLabelWidth, setBizLabelWidth] = useState(58); // 사업자정보 라벨 너비 (px) - 줄임
+  const [leftWidth, setLeftWidth] = useState(32); // 날짜/수신/참조 영역 너비 (%) - 사업자정보 영역 더 넓힘
+  const [bizLabelWidth, setBizLabelWidth] = useState(55); // 사업자정보 라벨 너비 (px)
   const [colWidths, setColWidths] = useState({
-    no: 28,      // No. 열 (px)
-    spec: 36,    // 규격 열 (px)
-    qty: 70,     // 수량 열 (px) - 더 넓힘
-    price: 85,   // 단가 열 (px) - 더 넓힘
-    total: 80,   // 견적가 열 (px)
-    note: 32,    // 비고 열 (px)
+    no: 26,      // No. 열 (px)
+    spec: 32,    // 규격 열 (px)
+    qty: 55,     // 수량 열 (px)
+    price: 65,   // 단가 열 (px)
+    total: 75,   // 견적가 열 (px)
+    note: 28,    // 비고 열 (px)
   });
 
   // MEMO 상태
