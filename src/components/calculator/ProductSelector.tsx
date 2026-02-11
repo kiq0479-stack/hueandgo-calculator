@@ -59,7 +59,11 @@ export default function ProductSelector({ onSelect, selectedProductNo }: Product
       {error && (
         <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
           {error}
-          <button onClick={loadProducts} className="ml-2 underline">다시 시도</button>
+          {error.includes('인증') ? (
+            <a href="/api/auth/cafe24" className="ml-2 underline text-blue-600">카페24 로그인</a>
+          ) : (
+            <button onClick={loadProducts} className="ml-2 underline">다시 시도</button>
+          )}
         </div>
       )}
 
