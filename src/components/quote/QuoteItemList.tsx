@@ -445,7 +445,7 @@ export default function QuoteItemList({
                           const num = Number(e.target.value.replace(/,/g, ''));
                           if (!isNaN(num)) onUpdateUnitPrice(item.id, Math.max(0, num));
                         }}
-                        className="w-full text-left bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
+                        className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
                       />
                     </td>
                     <td className="border-b border-r border-black px-1 py-1 text-right">
@@ -500,7 +500,7 @@ export default function QuoteItemList({
                           const num = Number(e.target.value.replace(/,/g, ''));
                           if (!isNaN(num)) updateManualRow(row.id, 'price', Math.max(0, num));
                         }}
-                        className="w-full text-left bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
+                        className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
                       />
                     </td>
                     <td className="border-b border-r border-black px-1 py-1 text-right">

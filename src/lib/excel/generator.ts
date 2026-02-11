@@ -303,11 +303,11 @@ export async function downloadQuoteExcel({
       dataRow.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
       dataRow.getCell(4).numFmt = '#,##0';
       
-      // 단가 (숫자 형식)
+      // 단가 (숫자 형식, 오른쪽 정렬)
       dataRow.getCell(5).value = item.unitPrice;
       dataRow.getCell(5).border = thinBorder;
       dataRow.getCell(5).font = { size: 9 };
-      dataRow.getCell(5).alignment = { horizontal: 'left', vertical: 'middle' };
+      dataRow.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
       dataRow.getCell(5).numFmt = '#,##0';
       
       // 견적가 (숫자 형식)
