@@ -404,7 +404,7 @@ export default function QuoteItemList({
         </summary>
         <div className="mt-2 p-2 bg-gray-50 rounded space-y-2">
           <div className="flex items-center gap-2">
-            <label className="w-20">위치 (위)</label>
+            <label className="w-20">위치 (상하)</label>
             <input
               type="range"
               min={0}
@@ -416,7 +416,7 @@ export default function QuoteItemList({
             <span className="w-10 text-right">{stampTop}px</span>
           </div>
           <div className="flex items-center gap-2">
-            <label className="w-20">위치 (우)</label>
+            <label className="w-20">위치 (좌우)</label>
             <input
               type="range"
               min={0}
