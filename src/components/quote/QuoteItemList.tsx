@@ -130,9 +130,9 @@ export default function QuoteItemList({
   const [colWidths, setColWidths] = useState({
     no: 28,      // No. 열 (px)
     spec: 36,    // 규격 열 (px)
-    qty: 48,     // 수량 열 (px)
-    price: 56,   // 단가 열 (px)
-    total: 72,   // 견적가 열 (px)
+    qty: 58,     // 수량 열 (px) - 숫자 안 잘리게 넓힘
+    price: 68,   // 단가 열 (px) - 숫자 안 잘리게 넓힘
+    total: 76,   // 견적가 열 (px)
     note: 36,    // 비고 열 (px)
   });
 
@@ -276,23 +276,23 @@ export default function QuoteItemList({
             </div>
             <div className="flex h-6">
               <div className="w-12 flex items-center shrink-0">수 신 :</div>
-              <div className="flex-1 border-b border-black">
+              <div className="flex-1 border-b border-black flex items-center">
                 <input
                   type="text"
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
-                  className="w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px]"
+                  className="w-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px] pb-0.5"
                 />
               </div>
             </div>
             <div className="flex h-6">
               <div className="w-12 flex items-center shrink-0">참 조 :</div>
-              <div className="flex-1 border-b border-black">
+              <div className="flex-1 border-b border-black flex items-center">
                 <input
                   type="text"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
-                  className="w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px]"
+                  className="w-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px] pb-0.5"
                 />
               </div>
             </div>
@@ -302,46 +302,46 @@ export default function QuoteItemList({
           {/* 오른쪽: 사업자정보 테이블 */}
           <div className="border border-black text-[10px] relative" style={{ width: `${100 - leftWidth}%` }}>
             <div className="flex h-6 border-b border-black">
-              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0" style={{ width: `${bizLabelWidth}px` }}>사업자소재지</div>
-              <div className="flex-1 px-1 flex items-center">
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap" style={{ width: `${bizLabelWidth}px` }}>사업자소재지</div>
+              <div className="flex-1 px-1 flex items-center overflow-visible">
                 <input
                   type="text"
                   value={bizAddress}
                   onChange={(e) => setBizAddress(e.target.value)}
-                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[9px]"
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px] whitespace-nowrap"
                 />
               </div>
             </div>
             <div className="flex h-6 border-b border-black">
-              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0" style={{ width: `${bizLabelWidth}px` }}>상호</div>
-              <div className="flex-1 px-1 flex items-center">
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap" style={{ width: `${bizLabelWidth}px` }}>상호</div>
+              <div className="flex-1 px-1 flex items-center overflow-visible">
                 <input
                   type="text"
                   value={bizName}
                   onChange={(e) => setBizName(e.target.value)}
-                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px]"
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px] whitespace-nowrap"
                 />
               </div>
             </div>
             <div className="flex h-6 border-b border-black">
-              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0" style={{ width: `${bizLabelWidth}px` }}>대표자성명</div>
-              <div className="flex-1 px-1 flex items-center">
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap" style={{ width: `${bizLabelWidth}px` }}>대표자성명</div>
+              <div className="flex-1 px-1 flex items-center overflow-visible">
                 <input
                   type="text"
                   value={bizCeo}
                   onChange={(e) => setBizCeo(e.target.value)}
-                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px]"
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px] whitespace-nowrap"
                 />
               </div>
             </div>
             <div className="flex h-6">
-              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0" style={{ width: `${bizLabelWidth}px` }}>전화번호</div>
-              <div className="flex-1 px-1 flex items-center">
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap" style={{ width: `${bizLabelWidth}px` }}>전화번호</div>
+              <div className="flex-1 px-1 flex items-center overflow-visible">
                 <input
                   type="text"
                   value={bizPhone}
                   onChange={(e) => setBizPhone(e.target.value)}
-                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px]"
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px] whitespace-nowrap"
                 />
               </div>
             </div>
