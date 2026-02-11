@@ -304,8 +304,8 @@ export default function HotangQuoteForm({
           <table className="w-full">
             <tbody>
               <tr>
-                <td className="border-r border-black px-1 py-1 bg-gray-50 w-28 text-center text-[10px]">
-                  합계금액(공급가액+부가세)
+                <td className="border-r border-black px-1 py-1 bg-gray-50 w-24 text-center text-[10px]">
+                  합계금액<br/>(공급가액+부가세)
                 </td>
                 <td className="px-2 py-1 text-center font-medium">
                   {numberToKorean(grandTotal)} 원정
