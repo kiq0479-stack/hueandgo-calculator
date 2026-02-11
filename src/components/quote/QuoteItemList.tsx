@@ -38,7 +38,7 @@ interface QuoteItemListProps {
   onReferenceChange?: (value: string) => void;
   memoText?: string;
   onMemoTextChange?: (value: string) => void;
-  // 사업자정보 동기화
+  // 사업자정보 동기화 (브랜디즈)
   bizAddress?: string;
   onBizAddressChange?: (value: string) => void;
   bizName?: string;
@@ -47,6 +47,21 @@ interface QuoteItemListProps {
   onBizCeoChange?: (value: string) => void;
   bizPhone?: string;
   onBizPhoneChange?: (value: string) => void;
+  // 호탱감탱 사업자정보 동기화
+  hotangBizRegNo?: string;
+  onHotangBizRegNoChange?: (value: string) => void;
+  hotangBizName?: string;
+  onHotangBizNameChange?: (value: string) => void;
+  hotangBizCeo?: string;
+  onHotangBizCeoChange?: (value: string) => void;
+  hotangBizAddress?: string;
+  onHotangBizAddressChange?: (value: string) => void;
+  hotangBizType?: string;
+  onHotangBizTypeChange?: (value: string) => void;
+  hotangBizItem?: string;
+  onHotangBizItemChange?: (value: string) => void;
+  hotangBizPhone?: string;
+  onHotangBizPhoneChange?: (value: string) => void;
 }
 
 // 오늘 날짜를 YYYY-MM-DD 형식으로 (input type="date"용)
@@ -143,7 +158,7 @@ export default function QuoteItemList({
   onReferenceChange,
   memoText: externalMemoText,
   onMemoTextChange,
-  // 사업자정보
+  // 사업자정보 (브랜디즈)
   bizAddress: externalBizAddress,
   onBizAddressChange,
   bizName: externalBizName,
@@ -152,6 +167,21 @@ export default function QuoteItemList({
   onBizCeoChange,
   bizPhone: externalBizPhone,
   onBizPhoneChange,
+  // 호탱감탱 사업자정보
+  hotangBizRegNo,
+  onHotangBizRegNoChange,
+  hotangBizName,
+  onHotangBizNameChange,
+  hotangBizCeo,
+  onHotangBizCeoChange,
+  hotangBizAddress,
+  onHotangBizAddressChange,
+  hotangBizType,
+  onHotangBizTypeChange,
+  hotangBizItem,
+  onHotangBizItemChange,
+  hotangBizPhone,
+  onHotangBizPhoneChange,
 }: QuoteItemListProps) {
   // 현재 선택된 템플릿 정보
   const currentTemplate = templateId === 'hotanggamtang' ? HOTANGGAMTANG : BRANDIZ;
@@ -317,6 +347,21 @@ export default function QuoteItemList({
         onRecipientChange={setRecipient}
         memoText={memoText}
         onMemoTextChange={setMemoText}
+        // 호탱감탱 사업자정보 동기화
+        bizRegNo={hotangBizRegNo}
+        onBizRegNoChange={onHotangBizRegNoChange}
+        bizName={hotangBizName}
+        onBizNameChange={onHotangBizNameChange}
+        bizCeo={hotangBizCeo}
+        onBizCeoChange={onHotangBizCeoChange}
+        bizAddress={hotangBizAddress}
+        onBizAddressChange={onHotangBizAddressChange}
+        bizType={hotangBizType}
+        onBizTypeChange={onHotangBizTypeChange}
+        bizItem={hotangBizItem}
+        onBizItemChange={onHotangBizItemChange}
+        bizPhone={hotangBizPhone}
+        onBizPhoneChange={onHotangBizPhoneChange}
       />
     );
   }

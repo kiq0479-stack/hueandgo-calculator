@@ -37,11 +37,20 @@ export default function Home() {
   const [reference, setReference] = useState('');
   const [memoText, setMemoText] = useState('*배송은 택배시 무료입니다.');
   
-  // 사업자정보 공유 상태
+  // 브랜디즈 사업자정보 공유 상태
   const [bizAddress, setBizAddress] = useState('울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동');
   const [bizName, setBizName] = useState('주식회사 브랜디즈');
   const [bizCeo, setBizCeo] = useState('감민주');
   const [bizPhone, setBizPhone] = useState('010-2116-2349');
+  
+  // 호탱감탱 사업자정보 공유 상태
+  const [hotangBizRegNo, setHotangBizRegNo] = useState('812-09-01666');
+  const [hotangBizName, setHotangBizName] = useState('호탱감탱');
+  const [hotangBizCeo, setHotangBizCeo] = useState('강태호');
+  const [hotangBizAddress, setHotangBizAddress] = useState('울산광역시 동구 문현로 37, 3층(방어동)');
+  const [hotangBizType, setHotangBizType] = useState('제조업');
+  const [hotangBizItem, setHotangBizItem] = useState('인형 및 장난감 제조업');
+  const [hotangBizPhone, setHotangBizPhone] = useState('010-6255-7392');
   
   // 수동 행 추가
   const addManualRow = () => {
@@ -152,6 +161,21 @@ export default function Home() {
                 onBizCeoChange={setBizCeo}
                 bizPhone={bizPhone}
                 onBizPhoneChange={setBizPhone}
+                // 호탱감탱 사업자정보
+                hotangBizRegNo={hotangBizRegNo}
+                onHotangBizRegNoChange={setHotangBizRegNo}
+                hotangBizName={hotangBizName}
+                onHotangBizNameChange={setHotangBizName}
+                hotangBizCeo={hotangBizCeo}
+                onHotangBizCeoChange={setHotangBizCeo}
+                hotangBizAddress={hotangBizAddress}
+                onHotangBizAddressChange={setHotangBizAddress}
+                hotangBizType={hotangBizType}
+                onHotangBizTypeChange={setHotangBizType}
+                hotangBizItem={hotangBizItem}
+                onHotangBizItemChange={setHotangBizItem}
+                hotangBizPhone={hotangBizPhone}
+                onHotangBizPhoneChange={setHotangBizPhone}
               />
             </section>
 
@@ -224,6 +248,21 @@ export default function Home() {
                 onBizCeoChange={setBizCeo}
                 bizPhone={bizPhone}
                 onBizPhoneChange={setBizPhone}
+                // 호탱감탱 사업자정보
+                hotangBizRegNo={hotangBizRegNo}
+                onHotangBizRegNoChange={setHotangBizRegNo}
+                hotangBizName={hotangBizName}
+                onHotangBizNameChange={setHotangBizName}
+                hotangBizCeo={hotangBizCeo}
+                onHotangBizCeoChange={setHotangBizCeo}
+                hotangBizAddress={hotangBizAddress}
+                onHotangBizAddressChange={setHotangBizAddress}
+                hotangBizType={hotangBizType}
+                onHotangBizTypeChange={setHotangBizType}
+                hotangBizItem={hotangBizItem}
+                onHotangBizItemChange={setHotangBizItem}
+                hotangBizPhone={hotangBizPhone}
+                onHotangBizPhoneChange={setHotangBizPhone}
               />
             </section>
           </div>
