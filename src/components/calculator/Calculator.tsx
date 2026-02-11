@@ -67,15 +67,29 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     }
   }, []);
 
-  // 옵션 변경
-  function handleOptionChange(optionName: string, optionValue: string, additionalAmount: string) {
+  // 옵션 변경 (additionalAmount는 이제 사용 안 함 - variants에서 계산)
+  function handleOptionChange(optionName: string, optionValue: string, _additionalAmount: string) {
     setSelectedOptions((prev) => ({ ...prev, [optionName]: optionValue }));
-    setOptionAmounts((prev) => ({ ...prev, [optionName]: Number(additionalAmount) }));
   }
 
-  // 단가 계산
+  // variants에서 선택된 옵션 조합에 해당하는 variant 찾기
+  function findMatchingVariant() {
+    if (!variants.length || Object.keys(selectedOptions).length === 0) return null;
+    
+    return variants.find((variant) => {
+      if (!variant.options) return false;
+      // 모든 선택된 옵션이 variant의 옵션과 일치하는지 확인
+      return Object.entries(selectedOptions).every(([optName, optValue]) => {
+        const variantOpt = variant.options.find((o) => o.name === optName);
+        return variantOpt && variantOpt.value === optValue;
+      });
+    });
+  }
+
+  // 단가 계산 (variants에서 정확한 가격 찾기)
   const basePrice = selectedProduct ? Number(selectedProduct.price) : 0;
-  const optionExtra = Object.values(optionAmounts).reduce((sum, amt) => sum + amt, 0);
+  const matchingVariant = findMatchingVariant();
+  const optionExtra = matchingVariant ? Number(matchingVariant.additional_amount) : 0;
   const unitPrice = basePrice + optionExtra;
   const addonTotal = addons.reduce((sum, a) => sum + a.unitPrice * a.quantity, 0);
   const totalPrice = unitPrice * quantity + addonTotal;
