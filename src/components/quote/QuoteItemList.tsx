@@ -177,13 +177,15 @@ export default function QuoteItemList({
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">사업자소재지</div>
               <div className="flex-1 px-1 flex items-center text-[9px]">울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동</div>
             </div>
-            <div className="flex h-8 border-b border-black">
+            <div className="flex h-10 border-b border-black">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">상호</div>
               <div className="flex-1 px-1 flex items-center justify-between">
                 <span>주식회사 브랜디즈</span>
-                <div className="w-7 h-7 rounded-full border-2 border-red-500 flex items-center justify-center text-red-500 font-bold shrink-0">
-                  인
-                </div>
+                <img 
+                  src="/stamp-brandiz.png" 
+                  alt="인" 
+                  className="h-9 w-9 object-contain shrink-0"
+                />
               </div>
             </div>
             <div className="flex h-6 border-b border-black">
