@@ -23,12 +23,23 @@ export interface Cafe24Product {
   updated_date: string;
 }
 
+// 추가구성상품
+export interface Cafe24AdditionalProduct {
+  product_no: number;
+  product_name: string;
+  product_code: string;
+  price: string;
+  has_option: 'T' | 'F';
+  small_image?: string;
+}
+
 // 상품 상세 조회 응답
 export interface Cafe24ProductDetail extends Cafe24Product {
   description: string;
   option_type: string; // "T" = 조합형, "E" = 독립형, "F" = 옵션없음
   category: Cafe24Category[];
   variants?: Cafe24Variant[];
+  additionalproducts?: Cafe24AdditionalProduct[];
 }
 
 // 카테고리

@@ -68,9 +68,14 @@ export async function fetchProductDetail(
   const BASE_URL = getBaseUrl();
 
   const query = new URLSearchParams();
-  if (embed?.length) query.set('embed', embed.join(','));
+  // 기본으로 additionalproducts 포함
+  const embedList = embed || [];
+  if (!embedList.includes('additionalproducts')) {
+    embedList.push('additionalproducts');
+  }
+  query.set('embed', embedList.join(','));
 
-  const url = `${BASE_URL}/products/${productNo}${query.toString() ? '?' + query.toString() : ''}`;
+  const url = `${BASE_URL}/products/${productNo}?${query.toString()}`;
   const response = await fetch(url, { headers });
 
   if (!response.ok) {
@@ -195,5 +200,9 @@ export async function fetchProductWithDetails(productNo: number) {
     console.log('[DEBUG] fetchProductOptions failed:', optionsApiError);
   }
 
-  return { product, options, variants, optionsApiError };
+  // 추가구성상품
+  const additionalProducts = product?.additionalproducts || [];
+  console.log('[DEBUG] additionalProducts count:', additionalProducts.length);
+
+  return { product, options, variants, additionalProducts, optionsApiError };
 }
