@@ -13,6 +13,7 @@ interface QuoteItemListProps {
   truncation: TruncationType;
   totals: QuoteTotals;
   templateId?: 'brandiz' | 'hotanggamtang';
+  documentType?: 'quote' | 'invoice';
   onRemove: (id: string) => void;
   onUpdateQuantity: (id: string, quantity: number) => void;
   onUpdateUnitPrice: (id: string, unitPrice: number) => void;
@@ -95,6 +96,7 @@ export default function QuoteItemList({
   truncation,
   totals,
   templateId = 'brandiz',
+  documentType = 'quote',
   onRemove,
   onUpdateQuantity,
   onUpdateUnitPrice,
@@ -212,10 +214,13 @@ export default function QuoteItemList({
   // 전체 행 (API 아이템 + 수동 행 합쳐서 MAX_ROWS까지)
   const totalItemCount = items.length + manualRows.length;
 
+  const previewId = documentType === 'invoice' ? 'invoice-preview' : 'quote-preview';
+  const docTitle = documentType === 'invoice' ? '거 래 명 세 서' : '견 적 서';
+
   return (
     <div className="space-y-3">
       {/* 엑셀 견적서 양식 그대로 */}
-      <div id="quote-preview" className="border border-black bg-white text-[11px] leading-tight">
+      <div id={previewId} className="border border-black bg-white text-[11px] leading-tight">
         
         {/* Row: No. */}
         <div className="px-2 py-1 text-gray-600">No.</div>
@@ -223,9 +228,9 @@ export default function QuoteItemList({
         {/* Row: 빈 줄 */}
         <div className="h-2"></div>
         
-        {/* Row: 견 적 서 */}
+        {/* Row: 견적서/거래명세서 */}
         <div className="py-2 text-center">
-          <span className="text-lg font-bold tracking-[1em]">견 적 서</span>
+          <span className="text-lg font-bold tracking-[1em]">{docTitle}</span>
         </div>
         
         {/* Row: 빈 줄 */}

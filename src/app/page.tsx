@@ -43,12 +43,12 @@ export default function Home() {
             <Calculator onAddToQuote={addItem} />
           </section>
 
-          {/* 오른쪽: 견적 항목 */}
+          {/* 오른쪽: 견적서 */}
           <section className="rounded-xl border border-gray-200 bg-white p-8 min-h-[600px]">
             {/* 헤더: 제목 + 사업자 선택 + 내보내기 버튼 */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold text-gray-800">
-                견적 항목
+                견적서
                 {items.length > 0 && (
                   <span className="ml-2 text-sm font-normal text-gray-400">
                     ({items.length}건)
@@ -97,6 +97,60 @@ export default function Home() {
             />
           </section>
         </div>
+
+        {/* 거래명세서 */}
+        <section className="rounded-xl border border-gray-200 bg-white p-8">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-gray-800">
+              거래명세서
+              {items.length > 0 && (
+                <span className="ml-2 text-sm font-normal text-gray-400">
+                  ({items.length}건)
+                </span>
+              )}
+            </h2>
+            <div className="flex items-center gap-2">
+              {/* 사업자 선택 */}
+              {TEMPLATES.map((tmpl) => (
+                <button
+                  key={tmpl.id}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, templateId: tmpl.id }))}
+                  className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
+                    formData.templateId === tmpl.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {tmpl.label}
+                </button>
+              ))}
+              {/* PDF / 엑셀 */}
+              <ExportButtons
+                documentType="invoice"
+                previewElementId="invoice-preview"
+                items={items}
+                totals={totals}
+                formData={formData}
+              />
+            </div>
+          </div>
+
+          <QuoteItemList
+            items={items}
+            discountRate={discountRate}
+            truncation={truncation}
+            totals={totals}
+            templateId={formData.templateId}
+            onRemove={removeItem}
+            onUpdateQuantity={updateQuantity}
+            onUpdateUnitPrice={updateUnitPrice}
+            onDiscountChange={updateDiscountRate}
+            onTruncationChange={updateTruncation}
+            onClearAll={clearAll}
+            documentType="invoice"
+          />
+        </section>
       </main>
     </div>
   );
