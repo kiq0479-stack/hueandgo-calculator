@@ -32,13 +32,19 @@ export async function downloadPdf({ elementId, fileName }: PdfOptions): Promise<
       const textInputs = clonedElement.querySelectorAll('input[type="text"]');
       textInputs.forEach((input) => {
         const inp = input as HTMLInputElement;
+        const computedStyle = window.getComputedStyle(inp);
         const span = clonedDoc.createElement('span');
         span.textContent = inp.value || '';
-        span.style.cssText = window.getComputedStyle(inp).cssText;
+        span.style.cssText = computedStyle.cssText;
         span.style.display = 'inline-block';
         span.style.width = inp.offsetWidth + 'px';
         span.style.whiteSpace = 'nowrap';
         span.style.overflow = 'visible';
+        // 정렬 스타일 명시적 적용
+        span.style.textAlign = computedStyle.textAlign;
+        if (computedStyle.textAlign === 'right' || inp.className.includes('text-right')) {
+          span.style.textAlign = 'right';
+        }
         inp.parentNode?.replaceChild(span, inp);
       });
       // date input도 처리
