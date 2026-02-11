@@ -78,11 +78,15 @@ const headerFill: ExcelJS.Fill = {
   fgColor: { argb: 'FFF5F5F5' },
 };
 
+// 수동 입력 행 타입
+type ManualRow = { id: string; name: string; qty: number; price: number };
+
 interface ExcelQuoteOptions {
   items: QuoteItem[];
   totals: QuoteTotals;
   formData: QuoteFormData;
   fileName: string;
+  manualRows?: ManualRow[];
 }
 
 /**
@@ -93,12 +97,15 @@ export async function downloadQuoteExcel({
   totals,
   formData,
   fileName,
+  manualRows = [],
 }: ExcelQuoteOptions): Promise<void> {
-  console.log('downloadQuoteExcel called:', { items, totals, formData, fileName });
-  console.log('items length:', items.length);
+  console.log('downloadQuoteExcel called:', { items, totals, formData, fileName, manualRows });
+  console.log('items length:', items.length, 'manualRows length:', manualRows.length);
   
   const template = formData.templateId === 'hotanggamtang' ? HOTANGGAMTANG : BRANDIZ;
-  const grandTotal = Math.round(totals.grandTotal);
+  // manualRows 합계 포함
+  const manualTotal = manualRows.reduce((sum, row) => sum + (row.qty * row.price), 0);
+  const grandTotal = Math.round(totals.grandTotal) + manualTotal;
   const phone = formData.templateId === 'hotanggamtang' ? '010-6255-7392' : '010-2116-2349';
   const stampUrl = formData.templateId === 'hotanggamtang' ? '/stamp-hotang.png' : '/stamp-brandiz.png';
 
@@ -270,62 +277,102 @@ export async function downloadQuoteExcel({
   });
   row++;
 
-  // 품목 행
+  // 품목 행 (items + manualRows 합쳐서 처리)
   const MAX_ROWS = 9;
+  const totalItemCount = items.length + manualRows.length;
+  
   for (let i = 0; i < MAX_ROWS; i++) {
     const rowNum = i + 1;
-    const item = items[i];
     const dataRow = ws.getRow(row);
+    
+    // items 먼저, 그 다음 manualRows
+    const item = items[i];
+    const manualRow = i >= items.length ? manualRows[i - items.length] : null;
 
     if (item) {
+      // Cafe24 API 항목
       const optionStr = Object.values(item.selectedOptions || {}).join(' ');
       const displayName = formatProductName(item.product.product_name, optionStr);
       const itemTotal = item.unitPrice * item.quantity;
       
-      // No.
       dataRow.getCell(1).value = rowNum;
       dataRow.getCell(1).border = thinBorder;
       dataRow.getCell(1).font = { size: 9 };
       dataRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
       
-      // 품명
       dataRow.getCell(2).value = displayName;
       dataRow.getCell(2).border = thinBorder;
       dataRow.getCell(2).font = { size: 9 };
       
-      // 규격
       dataRow.getCell(3).value = 'EA';
       dataRow.getCell(3).border = thinBorder;
       dataRow.getCell(3).font = { size: 9 };
       dataRow.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
       
-      // 수량 (숫자 형식)
       dataRow.getCell(4).value = item.quantity;
       dataRow.getCell(4).border = thinBorder;
       dataRow.getCell(4).font = { size: 9 };
       dataRow.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
       dataRow.getCell(4).numFmt = '#,##0';
       
-      // 단가 (숫자 형식, 오른쪽 정렬)
       dataRow.getCell(5).value = item.unitPrice;
       dataRow.getCell(5).border = thinBorder;
       dataRow.getCell(5).font = { size: 9 };
       dataRow.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
       dataRow.getCell(5).numFmt = '#,##0';
       
-      // 견적가 (숫자 형식)
       dataRow.getCell(6).value = itemTotal;
       dataRow.getCell(6).border = thinBorder;
       dataRow.getCell(6).font = { size: 9 };
       dataRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
       dataRow.getCell(6).numFmt = '#,##0';
       
-      // 비고
+      dataRow.getCell(7).value = '';
+      dataRow.getCell(7).border = thinBorder;
+      dataRow.getCell(7).font = { size: 9 };
+    } else if (manualRow) {
+      // 수동 입력 항목
+      const manualTotal = manualRow.qty * manualRow.price;
+      
+      dataRow.getCell(1).value = rowNum;
+      dataRow.getCell(1).border = thinBorder;
+      dataRow.getCell(1).font = { size: 9 };
+      dataRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+      
+      dataRow.getCell(2).value = manualRow.name || '';
+      dataRow.getCell(2).border = thinBorder;
+      dataRow.getCell(2).font = { size: 9 };
+      
+      dataRow.getCell(3).value = 'EA';
+      dataRow.getCell(3).border = thinBorder;
+      dataRow.getCell(3).font = { size: 9 };
+      dataRow.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+      
+      dataRow.getCell(4).value = manualRow.qty;
+      dataRow.getCell(4).border = thinBorder;
+      dataRow.getCell(4).font = { size: 9 };
+      dataRow.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
+      dataRow.getCell(4).numFmt = '#,##0';
+      
+      dataRow.getCell(5).value = manualRow.price;
+      dataRow.getCell(5).border = thinBorder;
+      dataRow.getCell(5).font = { size: 9 };
+      dataRow.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
+      dataRow.getCell(5).numFmt = '#,##0';
+      
+      dataRow.getCell(6).value = manualTotal;
+      dataRow.getCell(6).border = thinBorder;
+      dataRow.getCell(6).font = { size: 9 };
+      dataRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
+      dataRow.getCell(6).numFmt = '#,##0';
+      
       dataRow.getCell(7).value = '';
       dataRow.getCell(7).border = thinBorder;
       dataRow.getCell(7).font = { size: 9 };
     } else {
-      const values = [rowNum, '', rowNum <= 6 ? 'EA' : '', '', '', '-', ''];
+      // 빈 행
+      const showEA = rowNum <= 6;
+      const values = [rowNum, '', showEA ? 'EA' : '', '', '', '-', ''];
       values.forEach((v, idx) => {
         const cell = dataRow.getCell(idx + 1);
         cell.value = v;

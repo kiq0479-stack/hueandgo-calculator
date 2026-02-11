@@ -5,6 +5,9 @@ import type { QuoteItem } from '@/components/calculator/Calculator';
 import type { QuoteTotals } from '@/hooks/useQuote';
 import type { QuoteFormData } from '@/lib/quote/templates';
 
+// 수동 입력 행 타입
+type ManualRow = { id: string; name: string; qty: number; price: number };
+
 interface ExportButtonsProps {
   /** 문서 종류: 견적서 or 거래명세서 */
   documentType: 'quote' | 'invoice';
@@ -16,6 +19,8 @@ interface ExportButtonsProps {
   totals: QuoteTotals;
   /** 폼 데이터 */
   formData: QuoteFormData;
+  /** 수동 입력 행 */
+  manualRows?: ManualRow[];
 }
 
 export default function ExportButtons({
@@ -24,6 +29,7 @@ export default function ExportButtons({
   items,
   totals,
   formData,
+  manualRows = [],
 }: ExportButtonsProps) {
   const [downloading, setDownloading] = useState<'pdf' | 'excel' | null>(null);
 
@@ -104,10 +110,10 @@ export default function ExportButtons({
       const fileName = generateFileName();
       if (documentType === 'quote') {
         const { downloadQuoteExcel } = await import('@/lib/excel/generator');
-        await downloadQuoteExcel({ items, totals, formData, fileName });
+        await downloadQuoteExcel({ items, totals, formData, fileName, manualRows });
       } else {
         const { downloadInvoiceExcel } = await import('@/lib/excel/generator');
-        await downloadInvoiceExcel({ items, totals, formData, fileName });
+        await downloadInvoiceExcel({ items, totals, formData, fileName, manualRows });
       }
     } catch (err) {
       console.error('엑셀 다운로드 실패:', err);

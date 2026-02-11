@@ -104,6 +104,7 @@ export default function Home() {
                     items={items}
                     totals={totals}
                     formData={formData}
+                    manualRows={manualRows}
                   />
                 </div>
               </div>
@@ -158,6 +159,7 @@ export default function Home() {
                     items={items}
                     totals={totals}
                     formData={formData}
+                    manualRows={manualRows}
                   />
                 </div>
               </div>
