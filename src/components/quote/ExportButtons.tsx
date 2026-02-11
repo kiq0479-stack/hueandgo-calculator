@@ -109,8 +109,14 @@ export default function ExportButtons({
     try {
       const fileName = generateFileName();
       if (documentType === 'quote') {
-        const { downloadQuoteExcel } = await import('@/lib/excel/generator');
-        await downloadQuoteExcel({ items, totals, formData, fileName, manualRows });
+        // 호탱감탱은 별도 양식 사용
+        if (formData.templateId === 'hotanggamtang') {
+          const { downloadHotangQuoteExcel } = await import('@/lib/excel/generator');
+          await downloadHotangQuoteExcel({ items, totals, formData, fileName, manualRows });
+        } else {
+          const { downloadQuoteExcel } = await import('@/lib/excel/generator');
+          await downloadQuoteExcel({ items, totals, formData, fileName, manualRows });
+        }
       } else {
         const { downloadInvoiceExcel } = await import('@/lib/excel/generator');
         await downloadInvoiceExcel({ items, totals, formData, fileName, manualRows });
