@@ -209,7 +209,7 @@ export default function QuoteItemList({
           <div className="flex">
             <div className="w-24 border-r border-black shrink-0">
               <div className="px-2 py-1 text-center border-b border-black">합계금액</div>
-              <div className="px-2 py-1 text-center text-[10px]">(공급가액 +세액)</div>
+              <div className="px-2 py-1 text-center text-[10px]">(부가세 포함)</div>
             </div>
             <div className="w-1/2 flex items-center justify-center py-2 border-r border-black">
               <span className="text-sm font-medium tracking-wider">
