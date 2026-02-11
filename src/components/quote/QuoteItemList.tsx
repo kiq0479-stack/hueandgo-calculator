@@ -97,6 +97,17 @@ export default function QuoteItemList({
   const [recipient, setRecipient] = useState('');
   const [reference, setReference] = useState('');
 
+  // 사업자정보 상태
+  const [bizAddress, setBizAddress] = useState('울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동');
+  const [bizName, setBizName] = useState('주식회사 브랜디즈');
+  const [bizCeo, setBizCeo] = useState('감민주');
+  const [bizPhone, setBizPhone] = useState('010-2116-2349');
+
+  // 도장 위치/사이즈 상태
+  const [stampTop, setStampTop] = useState(18);
+  const [stampRight, setStampRight] = useState(8);
+  const [stampSize, setStampSize] = useState(40);
+
   // 컴포넌트 마운트 시 오늘 날짜로 초기화
   useEffect(() => {
     setQuoteDate(getTodayFormatted());
@@ -175,25 +186,59 @@ export default function QuoteItemList({
           <div className="w-[58%] border border-black text-[10px] relative">
             <div className="flex h-6 border-b border-black">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">사업자소재지</div>
-              <div className="flex-1 px-1 flex items-center text-[9px] truncate">울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동</div>
+              <div className="flex-1 px-1 flex items-center">
+                <input
+                  type="text"
+                  value={bizAddress}
+                  onChange={(e) => setBizAddress(e.target.value)}
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[9px]"
+                />
+              </div>
             </div>
             <div className="flex h-6 border-b border-black">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">상호</div>
-              <div className="flex-1 px-1 flex items-center">주식회사 브랜디즈</div>
+              <div className="flex-1 px-1 flex items-center">
+                <input
+                  type="text"
+                  value={bizName}
+                  onChange={(e) => setBizName(e.target.value)}
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px]"
+                />
+              </div>
             </div>
             <div className="flex h-6 border-b border-black">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">대표자성명</div>
-              <div className="flex-1 px-1 flex items-center">감민주</div>
+              <div className="flex-1 px-1 flex items-center">
+                <input
+                  type="text"
+                  value={bizCeo}
+                  onChange={(e) => setBizCeo(e.target.value)}
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px]"
+                />
+              </div>
             </div>
             <div className="flex h-6">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">전화번호</div>
-              <div className="flex-1 px-1 flex items-center">010-2116-2349</div>
+              <div className="flex-1 px-1 flex items-center">
+                <input
+                  type="text"
+                  value={bizPhone}
+                  onChange={(e) => setBizPhone(e.target.value)}
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px]"
+                />
+              </div>
             </div>
             {/* 도장 - 상호와 대표자성명 사이에 걸침 */}
             <img 
               src="/stamp-brandiz.png" 
               alt="인" 
-              className="absolute right-2 top-[18px] h-10 w-10 object-contain"
+              className="absolute object-contain"
+              style={{ 
+                top: `${stampTop}px`, 
+                right: `${stampRight}px`, 
+                width: `${stampSize}px`, 
+                height: `${stampSize}px` 
+              }}
             />
           </div>
         </div>
@@ -330,6 +375,51 @@ export default function QuoteItemList({
         
         <div className="h-2"></div>
       </div>
+
+      {/* 도장 위치/사이즈 설정 */}
+      <details className="text-[11px]">
+        <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
+          ▸ 도장 설정
+        </summary>
+        <div className="mt-2 p-2 bg-gray-50 rounded space-y-2">
+          <div className="flex items-center gap-2">
+            <label className="w-20">위치 (위)</label>
+            <input
+              type="range"
+              min={0}
+              max={60}
+              value={stampTop}
+              onChange={(e) => setStampTop(Number(e.target.value))}
+              className="flex-1"
+            />
+            <span className="w-10 text-right">{stampTop}px</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="w-20">위치 (우)</label>
+            <input
+              type="range"
+              min={0}
+              max={60}
+              value={stampRight}
+              onChange={(e) => setStampRight(Number(e.target.value))}
+              className="flex-1"
+            />
+            <span className="w-10 text-right">{stampRight}px</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="w-20">크기</label>
+            <input
+              type="range"
+              min={20}
+              max={80}
+              value={stampSize}
+              onChange={(e) => setStampSize(Number(e.target.value))}
+              className="flex-1"
+            />
+            <span className="w-10 text-right">{stampSize}px</span>
+          </div>
+        </div>
+      </details>
 
       {/* 할인/절삭 설정 */}
       <details className="text-[11px]">
