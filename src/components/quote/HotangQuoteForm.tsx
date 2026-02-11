@@ -218,13 +218,13 @@ export default function HotangQuoteForm({
               onChange={(e) => setDescLine2(e.target.value)}
               className="mb-1 bg-transparent border-0 focus:outline-none text-[11px] w-full"
             />
-            <div className="mb-2 relative">
-              <span className="pointer-events-none">{formatDateKorean(quoteDate)}</span>
+            <div className="mb-2 relative h-5">
+              <span className="absolute inset-0 flex items-center pointer-events-none z-0">{formatDateKorean(quoteDate)}</span>
               <input
                 type="date"
                 value={quoteDate}
                 onChange={(e) => setQuoteDate(e.target.value)}
-                className="absolute inset-0 opacity-0 cursor-pointer"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
             </div>
             <div className="flex items-center">
@@ -257,10 +257,10 @@ export default function HotangQuoteForm({
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50 w-12">대표자</td>
                   <td className="px-1 py-0.5 relative pr-10">
                     <input type="text" value={bizCeo} onChange={(e) => setBizCeo(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
-                    {/* 도장 */}
+                    {/* 호탱감탱 도장 */}
                     <img 
-                      src="/stamp-brandiz.png" 
-                      alt="도장" 
+                      src="/stamp-hotang.png" 
+                      alt="호탱감탱 도장" 
                       className="absolute object-contain"
                       style={{
                         top: `${stampTop}px`,
@@ -304,8 +304,8 @@ export default function HotangQuoteForm({
           <table className="w-full">
             <tbody>
               <tr>
-                <td className="border-r border-black px-2 py-1 bg-gray-50 w-20 text-center">
-                  합계금액<br/><span className="text-[9px]">(공급가액+부가세)</span>
+                <td className="border-r border-black px-1 py-1 bg-gray-50 w-28 text-center text-[10px]">
+                  합계금액(공급가액+부가세)
                 </td>
                 <td className="px-2 py-1 text-center font-medium">
                   {numberToKorean(grandTotal)} 원정
