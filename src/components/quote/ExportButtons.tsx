@@ -29,14 +29,39 @@ export default function ExportButtons({
 
   const label = documentType === 'quote' ? '견적서' : '거래명세서';
   const docType = documentType === 'quote' ? '견적서' : '거래명세서';
-  // 날짜 형식: YY.MM.DD
-  const dateParts = formData.date.split('-');
-  const dateStr = dateParts.length === 3 
-    ? `${dateParts[0].slice(2)}.${dateParts[1]}.${dateParts[2]}` 
-    : formData.date.replace(/-/g, '');
-  // 파일명: (휴앤고) 수신명 굿즈 주문제작 견적서_날짜
-  const recipientName = formData.recipient || '미입력';
-  const fileName = `(휴앤고) ${recipientName} 굿즈 주문제작 ${docType}_${dateStr}`;
+  
+  // DOM에서 수신처와 날짜 값 읽기 (QuoteItemList에서 관리하는 상태)
+  function getRecipientFromDOM(): string {
+    const previewEl = document.getElementById(previewElementId);
+    if (!previewEl) return '미입력';
+    // 수신 입력 필드 찾기
+    const inputs = previewEl.querySelectorAll('input[type="text"]');
+    for (const input of inputs) {
+      const inp = input as HTMLInputElement;
+      // 수신 필드는 보통 첫 번째 또는 두 번째 text input
+      if (inp.value && inp.value.length > 0 && !inp.value.includes('@')) {
+        return inp.value;
+      }
+    }
+    return '미입력';
+  }
+  
+  function getDateFromDOM(): string {
+    const previewEl = document.getElementById(previewElementId);
+    if (!previewEl) return formData.date;
+    const dateInput = previewEl.querySelector('input[type="date"]') as HTMLInputElement;
+    return dateInput?.value || formData.date;
+  }
+  
+  function generateFileName(): string {
+    const recipient = getRecipientFromDOM();
+    const dateValue = getDateFromDOM();
+    const dateParts = dateValue.split('-');
+    const dateStr = dateParts.length === 3 
+      ? `${dateParts[0].slice(2)}.${dateParts[1]}.${dateParts[2]}` 
+      : dateValue.replace(/-/g, '');
+    return `(휴앤고) ${recipient} 굿즈 주문제작 ${docType}_${dateStr}`;
+  }
 
   // PDF 다운로드
   async function handlePdfDownload() {
@@ -45,7 +70,7 @@ export default function ExportButtons({
       const { downloadPdf } = await import('@/lib/pdf/generator');
       await downloadPdf({
         elementId: previewElementId,
-        fileName,
+        fileName: generateFileName(),
       });
     } catch (err) {
       console.error('PDF 다운로드 실패:', err);
@@ -59,6 +84,7 @@ export default function ExportButtons({
   async function handleExcelDownload() {
     setDownloading('excel');
     try {
+      const fileName = generateFileName();
       if (documentType === 'quote') {
         const { downloadQuoteExcel } = await import('@/lib/excel/generator');
         downloadQuoteExcel({ items, totals, formData, fileName });
