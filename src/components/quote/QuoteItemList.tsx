@@ -265,7 +265,7 @@ export default function QuoteItemList({
                     <td className="border-b border-r border-black px-1 py-0.5 text-center">{rowNum}</td>
                     <td className="border-b border-r border-black px-1 py-0.5">
                       <div className="flex items-center gap-1">
-                        <span className="truncate max-w-[100px]" title={displayName}>
+                        <span title={displayName}>
                           {displayName}
                         </span>
                         <button
