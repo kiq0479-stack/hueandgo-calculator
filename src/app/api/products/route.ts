@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated, setTokenStore, type TokenData } from '@/lib/cafe24/auth';
-import { fetchProducts, fetchProductWithDetails } from '@/lib/cafe24/products';
+import { fetchProducts, fetchProductWithDetails, fetchProductByCode } from '@/lib/cafe24/products';
 
 // 로컬 추가구성상품 매핑 (직접 import - Vercel serverless 호환)
 import addonMappingData from '@/data/addon-mapping.json';
@@ -29,6 +29,7 @@ function restoreTokenFromCookie(request: NextRequest): boolean {
 
 // GET /api/products - 상품 목록 조회
 // GET /api/products?product_no=123 - 상품 상세 조회 (옵션+품목 포함)
+// GET /api/products?product_code=P00000XX - 상품코드로 상세 조회
 export async function GET(request: NextRequest) {
   // 쿠키에서 토큰 복원 시도
   restoreTokenFromCookie(request);
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
 
   const searchParams = request.nextUrl.searchParams;
   const productNo = searchParams.get('product_no');
+  const productCode = searchParams.get('product_code');
 
   try {
     // 상품 상세 조회 (product_no 파라미터 있을 때)
@@ -96,6 +98,40 @@ export async function GET(request: NextRequest) {
           error: msg, 
           debug: 'fetchProductWithDetails 실패',
           product_no: productNo 
+        }, { status: 500 });
+      }
+    }
+
+    // 상품코드로 상세 조회 (추가구성상품의 옵션 조회용)
+    if (productCode) {
+      try {
+        // 1. 상품코드로 상품번호 찾기
+        const product = await fetchProductByCode(productCode);
+        if (!product) {
+          return NextResponse.json({ 
+            error: `상품코드 ${productCode}에 해당하는 상품을 찾을 수 없습니다.`,
+          }, { status: 404 });
+        }
+
+        // 2. 상품번호로 상세 + 옵션 + variants 조회
+        const data = await fetchProductWithDetails(product.product_no);
+        
+        return NextResponse.json({
+          ...data,
+          _debug: {
+            productCode,
+            productNo: product.product_no,
+            optionsCount: data.options?.length ?? 0,
+            variantsCount: data.variants?.length ?? 0,
+          }
+        });
+      } catch (detailError) {
+        const msg = detailError instanceof Error ? detailError.message : String(detailError);
+        console.error('[ERROR] fetchProductByCode failed:', msg);
+        return NextResponse.json({ 
+          error: msg, 
+          debug: 'fetchProductByCode 실패',
+          product_code: productCode 
         }, { status: 500 });
       }
     }

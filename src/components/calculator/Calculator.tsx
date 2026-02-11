@@ -105,7 +105,11 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const unitPrice = basePrice + optionExtra;
   const addonTotal = addons.reduce((sum, a) => sum + a.unitPrice * a.quantity, 0);
   const cafe24AddonTotal = cafe24Addons.reduce(
-    (sum, a) => sum + Number(a.product.price) * a.quantity,
+    (sum, a) => {
+      const basePrice = Number(a.product.price) || 0;
+      const optionAmount = a.optionAdditionalAmount || 0;
+      return sum + (basePrice + optionAmount) * a.quantity;
+    },
     0
   );
   const totalPrice = unitPrice * quantity + addonTotal + cafe24AddonTotal;
@@ -129,19 +133,28 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
 
     // 2. Cafe24 추가구성상품 각각 별도 항목으로 추가
     for (const addon of cafe24Addons) {
+      const basePrice = Number(addon.product.price) || 0;
+      const optionAmount = addon.optionAdditionalAmount || 0;
+      const addonUnitPrice = basePrice + optionAmount;
+      
+      // 상품명에 옵션 정보 포함
+      const productName = addon.selectedOption 
+        ? `${addon.product.product_name} (${addon.selectedOption})`
+        : addon.product.product_name;
+      
       const addonItem: QuoteItem = {
         id: crypto.randomUUID(),
         product: {
           ...selectedProduct,
           product_no: addon.product.product_no,
           product_code: addon.product.product_code,
-          product_name: addon.product.product_name,
-          price: addon.product.price,
+          product_name: productName,
+          price: String(addonUnitPrice), // 옵션 추가금액 반영
         },
-        selectedOptions: {}, // 추가구성상품은 옵션 없음 (현재)
-        optionAdditionalAmounts: {},
-        quantity: addon.quantity, // 추가구성상품 수량 (메인 상품 수량과 별개로 관리 가능)
-        unitPrice: Number(addon.product.price),
+        selectedOptions: addon.selectedOption ? { '옵션': addon.selectedOption } : {},
+        optionAdditionalAmounts: addon.selectedOption ? { '옵션': optionAmount } : {},
+        quantity: addon.quantity,
+        unitPrice: addonUnitPrice,
         addons: [],
         cafe24Addons: [],
       };

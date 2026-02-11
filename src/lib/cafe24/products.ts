@@ -59,6 +59,24 @@ export async function fetchProducts(params?: {
   return data.products;
 }
 
+// 상품 코드로 상품 번호 조회
+export async function fetchProductByCode(productCode: string): Promise<Cafe24Product | null> {
+  const headers = await getAuthHeaders();
+  const BASE_URL = getBaseUrl();
+
+  const url = `${BASE_URL}/products?product_code=${productCode}`;
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.log(`[DEBUG] 상품코드 조회 실패 (${productCode}): ${response.status} ${error}`);
+    return null;
+  }
+
+  const data: Cafe24ProductsResponse = await response.json();
+  return data.products?.[0] || null;
+}
+
 // 상품 상세 조회 (옵션 포함)
 export async function fetchProductDetail(
   productNo: number,
