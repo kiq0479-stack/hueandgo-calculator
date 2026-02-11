@@ -127,10 +127,48 @@ export default function QuoteItemList({
     note: 36,    // 비고 열 (px)
   });
 
-  // 컴포넌트 마운트 시 오늘 날짜로 초기화 (YYYY-MM-DD 형식)
+  // 컴포넌트 마운트 시 저장된 양식 불러오기 + 오늘 날짜 설정
   useEffect(() => {
     setQuoteDate(getTodayISO());
+    
+    // localStorage에서 저장된 양식 불러오기
+    const saved = localStorage.getItem('quoteFormSettings');
+    if (saved) {
+      try {
+        const settings = JSON.parse(saved);
+        if (settings.bizAddress) setBizAddress(settings.bizAddress);
+        if (settings.bizName) setBizName(settings.bizName);
+        if (settings.bizCeo) setBizCeo(settings.bizCeo);
+        if (settings.bizPhone) setBizPhone(settings.bizPhone);
+        if (settings.stampTop !== undefined) setStampTop(settings.stampTop);
+        if (settings.stampRight !== undefined) setStampRight(settings.stampRight);
+        if (settings.stampSize !== undefined) setStampSize(settings.stampSize);
+        if (settings.leftWidth !== undefined) setLeftWidth(settings.leftWidth);
+        if (settings.bizLabelWidth !== undefined) setBizLabelWidth(settings.bizLabelWidth);
+        if (settings.colWidths) setColWidths(settings.colWidths);
+      } catch (e) {
+        console.error('Failed to load saved settings:', e);
+      }
+    }
   }, []);
+
+  // 양식 저장 함수
+  const saveFormSettings = () => {
+    const settings = {
+      bizAddress,
+      bizName,
+      bizCeo,
+      bizPhone,
+      stampTop,
+      stampRight,
+      stampSize,
+      leftWidth,
+      bizLabelWidth,
+      colWidths,
+    };
+    localStorage.setItem('quoteFormSettings', JSON.stringify(settings));
+    alert('양식이 저장되었습니다!');
+  };
 
   const rows = [...items];
   while (rows.length < MAX_ROWS) {
@@ -502,6 +540,15 @@ export default function QuoteItemList({
           </div>
         </div>
       </details>
+
+      {/* 양식 저장 버튼 */}
+      <button
+        type="button"
+        onClick={saveFormSettings}
+        className="w-full rounded border border-blue-300 bg-blue-50 px-3 py-1.5 text-[11px] text-blue-600 hover:bg-blue-100"
+      >
+        💾 현재 양식 저장
+      </button>
 
       {/* 할인/절삭 설정 */}
       <details className="text-[11px]">
