@@ -94,6 +94,9 @@ export async function downloadQuoteExcel({
   formData,
   fileName,
 }: ExcelQuoteOptions): Promise<void> {
+  console.log('downloadQuoteExcel called:', { items, totals, formData, fileName });
+  console.log('items length:', items.length);
+  
   const template = formData.templateId === 'hotanggamtang' ? HOTANGGAMTANG : BRANDIZ;
   const grandTotal = Math.round(totals.grandTotal);
   const phone = formData.templateId === 'hotanggamtang' ? '010-6255-7392' : '010-2116-2349';
@@ -121,13 +124,13 @@ export async function downloadQuoteExcel({
   }
 
   // 열 너비 설정 (A~H)
-  // A: No/날짜라벨, B: 품명/날짜값, C: 규격, D: 수량/사업자라벨, E: 단가/사업자값, F: 견적가, G: 비고
+  // A: No/날짜라벨/합계금액, B: 품명/날짜값, C: 규격, D: 수량/사업자라벨, E: 단가/사업자값, F: 견적가, G: 비고
   ws.columns = [
-    { width: 6 },   // A
-    { width: 30 },  // B
+    { width: 12 },  // A - 넓힘 (부가세 포함 1줄)
+    { width: 28 },  // B
     { width: 8 },   // C
     { width: 12 },  // D
-    { width: 20 },  // E
+    { width: 22 },  // E
     { width: 14 },  // F
     { width: 8 },   // G
   ];
