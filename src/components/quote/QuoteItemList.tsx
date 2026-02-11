@@ -19,10 +19,17 @@ interface QuoteItemListProps {
   onClearAll: () => void;
 }
 
-// 오늘 날짜를 YYYY년 M월 D일 형식으로
-function getTodayFormatted(): string {
+// 오늘 날짜를 YYYY-MM-DD 형식으로 (input type="date"용)
+function getTodayISO(): string {
   const today = new Date();
-  return `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+  return today.toISOString().split('T')[0];
+}
+
+// YYYY-MM-DD를 YYYY년 M월 D일 형식으로 변환
+function formatDateKorean(dateStr: string): string {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-');
+  return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
 }
 
 // 품명 정리: "(파트너 전용)" 제거 + 사이즈 추출해서 표기
@@ -120,9 +127,9 @@ export default function QuoteItemList({
     note: 36,    // 비고 열 (px)
   });
 
-  // 컴포넌트 마운트 시 오늘 날짜로 초기화
+  // 컴포넌트 마운트 시 오늘 날짜로 초기화 (YYYY-MM-DD 형식)
   useEffect(() => {
-    setQuoteDate(getTodayFormatted());
+    setQuoteDate(getTodayISO());
   }, []);
 
   const rows = [...items];
@@ -157,13 +164,15 @@ export default function QuoteItemList({
           <div className="pr-3" style={{ width: `${leftWidth}%` }}>
             <div className="flex h-6">
               <div className="w-12 flex items-center shrink-0">날 짜 :</div>
-              <div className="flex-1 border-b border-black">
+              <div className="flex-1 border-b border-black relative">
+                <span className="absolute inset-0 flex items-center px-1 text-[11px] pointer-events-none">
+                  {formatDateKorean(quoteDate)}
+                </span>
                 <input
-                  type="text"
+                  type="date"
                   value={quoteDate}
                   onChange={(e) => setQuoteDate(e.target.value)}
-                  className="w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px]"
-                  placeholder="2026년 2월 11일"
+                  className="w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px] opacity-0 cursor-pointer"
                 />
               </div>
             </div>
