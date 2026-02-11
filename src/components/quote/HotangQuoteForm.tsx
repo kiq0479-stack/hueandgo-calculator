@@ -219,12 +219,12 @@ export default function HotangQuoteForm({
               className="mb-1 bg-transparent border-0 focus:outline-none text-[11px] w-full"
             />
             <div className="mb-2 relative cursor-pointer" style={{ width: 'fit-content' }}>
-              <span>{formatDateKorean(quoteDate)}</span>
+              <span className="pointer-events-none">{formatDateKorean(quoteDate)}</span>
               <input
                 type="date"
                 value={quoteDate}
                 onChange={(e) => setQuoteDate(e.target.value)}
-                className="absolute inset-0 w-full h-full cursor-pointer"
+                className="absolute inset-0 w-full h-full cursor-pointer z-10"
                 style={{ opacity: 0 }}
               />
             </div>
