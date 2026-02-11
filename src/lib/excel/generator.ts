@@ -580,11 +580,11 @@ export async function downloadHotangQuoteExcel({
   ws.getCell(`E${row}`).border = thinBorder;
   ws.getCell(`E${row}`).font = { size: 9 };
   
-  // 도장 이미지 추가 - G열 바깥(H열), 대표자 행 근처
+  // 도장 이미지 추가 - H열, 대표자 행 오른쪽
   if (stampImageId !== null) {
     ws.addImage(stampImageId, {
-      tl: { col: 7.0, row: infoStartRow + 0.5 },
-      ext: { width: 42, height: 42 },
+      tl: { col: 7.3, row: infoStartRow + 0.7 },
+      ext: { width: 45, height: 45 },
     });
   }
   row += 2;
