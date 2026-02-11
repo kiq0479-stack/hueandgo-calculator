@@ -26,6 +26,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const [selectedProduct, setSelectedProduct] = useState<Cafe24Product | null>(null);
   const [productOptions, setProductOptions] = useState<Cafe24ProductOption[]>([]);
   const [variants, setVariants] = useState<Cafe24Variant[]>([]);
+  const [optionsApiError, setOptionsApiError] = useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [optionAmounts, setOptionAmounts] = useState<Record<string, number>>({});
   const [quantity, setQuantity] = useState(1);
@@ -39,6 +40,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     setOptionAmounts({});
     setQuantity(1);
     setAddons([]);
+    setOptionsApiError(null);
     setLoadingDetail(true);
 
     try {
@@ -49,14 +51,17 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
         const data = await res.json();
         setProductOptions(data.options || []);
         setVariants(data.variants || []);
+        setOptionsApiError(data.optionsApiError || null);
       } else {
         setProductOptions([]);
         setVariants([]);
+        setOptionsApiError('API 호출 실패');
       }
     } catch {
       // 옵션 로드 실패 시 빈 상태로 유지
       setProductOptions([]);
       setVariants([]);
+      setOptionsApiError('네트워크 에러');
     } finally {
       setLoadingDetail(false);
     }
@@ -134,7 +139,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
       {selectedProduct && !loadingDetail && (
         <div className="text-xs text-gray-400 bg-yellow-50 p-2 rounded">
           [DEBUG] options: {productOptions.length}개, variants: {variants.length}개
-          {productOptions.length === 0 && variants.length > 0 && ' → variants에서 옵션 추출 필요'}
+          {optionsApiError && <div className="text-red-500">Options API 에러: {optionsApiError}</div>}
         </div>
       )}
 

@@ -184,12 +184,16 @@ export async function fetchProductWithDetails(productNo: number) {
   }
 
   // 디버그 로그
+  const optionsApiError = optionsResult.status === 'rejected' 
+    ? (optionsResult.reason?.message || String(optionsResult.reason))
+    : null;
+  
   console.log('[DEBUG] product:', product?.product_name);
   console.log('[DEBUG] options count:', options?.length ?? 0);
   console.log('[DEBUG] variants count:', variants?.length ?? 0);
-  if (optionsResult.status === 'rejected') {
-    console.log('[DEBUG] fetchProductOptions failed:', optionsResult.reason?.message || optionsResult.reason);
+  if (optionsApiError) {
+    console.log('[DEBUG] fetchProductOptions failed:', optionsApiError);
   }
 
-  return { product, options, variants };
+  return { product, options, variants, optionsApiError };
 }
