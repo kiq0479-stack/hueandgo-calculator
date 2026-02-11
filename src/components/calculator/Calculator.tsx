@@ -110,22 +110,64 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   );
   const totalPrice = unitPrice * quantity + addonTotal + cafe24AddonTotal;
 
-  // 견적에 추가
+  // 견적에 추가 (메인 상품 + 추가구성상품 각각 별도 행으로)
   function handleAddToQuote() {
     if (!selectedProduct) return;
 
-    const item: QuoteItem = {
+    // 1. 메인 상품 추가
+    const mainItem: QuoteItem = {
       id: crypto.randomUUID(),
       product: selectedProduct,
       selectedOptions: { ...selectedOptions },
       optionAdditionalAmounts: { ...optionAmounts },
       quantity,
       unitPrice,
-      addons: [...addons],
-      cafe24Addons: [...cafe24Addons],
+      addons: [], // 추가상품은 별도 행으로 분리
+      cafe24Addons: [], // 추가구성상품도 별도 행으로 분리
     };
+    onAddToQuote?.(mainItem);
 
-    onAddToQuote?.(item);
+    // 2. Cafe24 추가구성상품 각각 별도 항목으로 추가
+    for (const addon of cafe24Addons) {
+      const addonItem: QuoteItem = {
+        id: crypto.randomUUID(),
+        product: {
+          ...selectedProduct,
+          product_no: addon.product.product_no,
+          product_code: addon.product.product_code,
+          product_name: addon.product.product_name,
+          price: addon.product.price,
+        },
+        selectedOptions: {}, // 추가구성상품은 옵션 없음 (현재)
+        optionAdditionalAmounts: {},
+        quantity: addon.quantity, // 추가구성상품 수량 (메인 상품 수량과 별개로 관리 가능)
+        unitPrice: Number(addon.product.price),
+        addons: [],
+        cafe24Addons: [],
+      };
+      onAddToQuote?.(addonItem);
+    }
+
+    // 3. 수동 추가상품 각각 별도 항목으로 추가
+    for (const addon of addons) {
+      const addonItem: QuoteItem = {
+        id: crypto.randomUUID(),
+        product: {
+          ...selectedProduct,
+          product_no: 0, // 수동 추가상품은 상품번호 없음
+          product_code: '',
+          product_name: addon.name,
+          price: String(addon.unitPrice),
+        },
+        selectedOptions: {},
+        optionAdditionalAmounts: {},
+        quantity: addon.quantity,
+        unitPrice: addon.unitPrice,
+        addons: [],
+        cafe24Addons: [],
+      };
+      onAddToQuote?.(addonItem);
+    }
 
     // 리셋
     setSelectedOptions({});
