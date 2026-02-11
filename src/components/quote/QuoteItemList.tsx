@@ -292,7 +292,7 @@ export default function QuoteItemList({
   const previewId = documentType === 'invoice' ? 'invoice-preview' : 'quote-preview';
   const docTitle = documentType === 'invoice' ? '거 래 명 세 서' : '견 적 서';
 
-  // 호탱감탱일 때는 별도 양식 사용
+  // 호탱감탱일 때는 별도 양식 사용 (공유 상태 전달)
   if (templateId === 'hotanggamtang') {
     return (
       <HotangQuoteForm
@@ -306,6 +306,17 @@ export default function QuoteItemList({
         onClearAll={onClearAll}
         onUpdateQuantity={onUpdateQuantity}
         onUpdateUnitPrice={onUpdateUnitPrice}
+        // 공유 상태 (견적서/거래명세서 동기화)
+        manualRows={manualRows}
+        onAddManualRow={onAddManualRow}
+        onUpdateManualRow={onUpdateManualRow}
+        onRemoveManualRow={onRemoveManualRow}
+        quoteDate={quoteDate}
+        onQuoteDateChange={onQuoteDateChange}
+        recipient={recipient}
+        onRecipientChange={onRecipientChange}
+        memoText={memoText}
+        onMemoTextChange={onMemoTextChange}
       />
     );
   }

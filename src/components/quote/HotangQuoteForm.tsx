@@ -6,6 +6,9 @@ import type { QuoteTotals, TruncationType } from '@/hooks/useQuote';
 import { HOTANGGAMTANG } from '@/lib/quote/templates';
 import DiscountControl from './DiscountControl';
 
+// 수동 입력 행 타입
+type ManualRow = { id: string; name: string; qty: number; price: number };
+
 interface HotangQuoteFormProps {
   items: QuoteItemType[];
   totals: QuoteTotals;
@@ -17,6 +20,32 @@ interface HotangQuoteFormProps {
   onClearAll?: () => void;
   onUpdateQuantity?: (id: string, quantity: number) => void;
   onUpdateUnitPrice?: (id: string, unitPrice: number) => void;
+  // 공유 상태 (견적서/거래명세서 동기화)
+  manualRows?: ManualRow[];
+  onAddManualRow?: () => void;
+  onUpdateManualRow?: (id: string, field: keyof ManualRow, value: string | number) => void;
+  onRemoveManualRow?: (id: string) => void;
+  quoteDate?: string;
+  onQuoteDateChange?: (date: string) => void;
+  recipient?: string;
+  onRecipientChange?: (value: string) => void;
+  memoText?: string;
+  onMemoTextChange?: (value: string) => void;
+  // 사업자정보 동기화
+  bizRegNo?: string;
+  onBizRegNoChange?: (value: string) => void;
+  bizName?: string;
+  onBizNameChange?: (value: string) => void;
+  bizCeo?: string;
+  onBizCeoChange?: (value: string) => void;
+  bizAddress?: string;
+  onBizAddressChange?: (value: string) => void;
+  bizType?: string;
+  onBizTypeChange?: (value: string) => void;
+  bizItem?: string;
+  onBizItemChange?: (value: string) => void;
+  bizPhone?: string;
+  onBizPhoneChange?: (value: string) => void;
 }
 
 // 오늘 날짜를 YYYY-MM-DD 형식으로
@@ -94,57 +123,102 @@ export default function HotangQuoteForm({
   onClearAll,
   onUpdateQuantity,
   onUpdateUnitPrice,
+  // 공유 상태 props
+  manualRows: externalManualRows,
+  onAddManualRow: externalAddManualRow,
+  onUpdateManualRow: externalUpdateManualRow,
+  onRemoveManualRow: externalRemoveManualRow,
+  quoteDate: externalQuoteDate,
+  onQuoteDateChange: externalQuoteDateChange,
+  recipient: externalRecipient,
+  onRecipientChange: externalRecipientChange,
+  memoText: externalMemoText,
+  onMemoTextChange: externalMemoTextChange,
+  bizRegNo: externalBizRegNo,
+  onBizRegNoChange: externalBizRegNoChange,
+  bizName: externalBizName,
+  onBizNameChange: externalBizNameChange,
+  bizCeo: externalBizCeo,
+  onBizCeoChange: externalBizCeoChange,
+  bizAddress: externalBizAddress,
+  onBizAddressChange: externalBizAddressChange,
+  bizType: externalBizType,
+  onBizTypeChange: externalBizTypeChange,
+  bizItem: externalBizItem,
+  onBizItemChange: externalBizItemChange,
+  bizPhone: externalBizPhone,
+  onBizPhoneChange: externalBizPhoneChange,
 }: HotangQuoteFormProps) {
-  // 날짜/수신처
-  const [quoteDate, setQuoteDate] = useState('');
-  const [recipient, setRecipient] = useState('');
+  // 내부 fallback 상태 (props 없을 때 사용)
+  const [internalQuoteDate, setInternalQuoteDate] = useState('');
+  const [internalRecipient, setInternalRecipient] = useState('');
+  const [internalMemoText, setInternalMemoText] = useState('*배송은 택배시 무료입니다.');
+  const [internalBizRegNo, setInternalBizRegNo] = useState(HOTANGGAMTANG.registrationNumber);
+  const [internalBizName, setInternalBizName] = useState(HOTANGGAMTANG.companyName);
+  const [internalBizCeo, setInternalBizCeo] = useState(HOTANGGAMTANG.representative);
+  const [internalBizAddress, setInternalBizAddress] = useState(HOTANGGAMTANG.address);
+  const [internalBizType, setInternalBizType] = useState(HOTANGGAMTANG.businessType);
+  const [internalBizItem, setInternalBizItem] = useState(HOTANGGAMTANG.businessItem);
+  const [internalBizPhone, setInternalBizPhone] = useState('010-6255-7392');
+  const [internalManualRows, setInternalManualRows] = useState<ManualRow[]>([]);
   
-  // 설명 텍스트 (수정 가능)
+  // props 우선, 없으면 내부 상태 사용
+  const quoteDate = externalQuoteDate ?? internalQuoteDate;
+  const setQuoteDate = externalQuoteDateChange ?? setInternalQuoteDate;
+  const recipient = externalRecipient ?? internalRecipient;
+  const setRecipient = externalRecipientChange ?? setInternalRecipient;
+  const memoText = externalMemoText ?? internalMemoText;
+  const setMemoText = externalMemoTextChange ?? setInternalMemoText;
+  const bizRegNo = externalBizRegNo ?? internalBizRegNo;
+  const setBizRegNo = externalBizRegNoChange ?? setInternalBizRegNo;
+  const bizName = externalBizName ?? internalBizName;
+  const setBizName = externalBizNameChange ?? setInternalBizName;
+  const bizCeo = externalBizCeo ?? internalBizCeo;
+  const setBizCeo = externalBizCeoChange ?? setInternalBizCeo;
+  const bizAddress = externalBizAddress ?? internalBizAddress;
+  const setBizAddress = externalBizAddressChange ?? setInternalBizAddress;
+  const bizType = externalBizType ?? internalBizType;
+  const setBizType = externalBizTypeChange ?? setInternalBizType;
+  const bizItem = externalBizItem ?? internalBizItem;
+  const setBizItem = externalBizItemChange ?? setInternalBizItem;
+  const bizPhone = externalBizPhone ?? internalBizPhone;
+  const setBizPhone = externalBizPhoneChange ?? setInternalBizPhone;
+  const manualRows = externalManualRows ?? internalManualRows;
+  
+  // 설명 텍스트 (내부 상태만 - 거래명세서도 동일)
   const [descLine1, setDescLine1] = useState('아크릴 굿즈 주문제작에 대하여');
   const [descLine2, setDescLine2] = useState('아래와 같이 견적합니다.');
   
-  // 사업자정보 (수정 가능)
-  const [bizRegNo, setBizRegNo] = useState(HOTANGGAMTANG.registrationNumber);
-  const [bizName, setBizName] = useState(HOTANGGAMTANG.companyName);
-  const [bizCeo, setBizCeo] = useState(HOTANGGAMTANG.representative);
-  const [bizAddress, setBizAddress] = useState(HOTANGGAMTANG.address);
-  const [bizType, setBizType] = useState(HOTANGGAMTANG.businessType);
-  const [bizItem, setBizItem] = useState(HOTANGGAMTANG.businessItem);
-  const [bizPhone, setBizPhone] = useState('010-6255-7392');
-  
-  // 메모
-  const [memoText, setMemoText] = useState('*배송은 택배시 무료입니다.');
-  
-  // 도장 설정
+  // 도장 설정 (내부 상태만)
   const [stampTop, setStampTop] = useState(0);
   const [stampRight, setStampRight] = useState(0);
   const [stampSize, setStampSize] = useState(40);
   
-  // 레이아웃 설정
+  // 레이아웃 설정 (내부 상태만)
   const [leftWidth, setLeftWidth] = useState(45);
-  
-  // 수동 입력 행 상태
-  type ManualRow = { id: string; name: string; qty: number; price: number };
-  const [manualRows, setManualRows] = useState<ManualRow[]>([]);
 
   useEffect(() => {
-    setQuoteDate(getTodayISO());
+    // 날짜 초기화 (props가 없을 때만)
+    if (!externalQuoteDate) {
+      setInternalQuoteDate(getTodayISO());
+    }
     
-    // localStorage에서 저장된 설정 불러오기
+    // localStorage에서 저장된 설정 불러오기 (내부 상태용)
     const saved = localStorage.getItem('hotangFormSettings');
     if (saved) {
       try {
         const settings = JSON.parse(saved);
         if (settings.descLine1) setDescLine1(settings.descLine1);
         if (settings.descLine2) setDescLine2(settings.descLine2);
-        if (settings.bizRegNo) setBizRegNo(settings.bizRegNo);
-        if (settings.bizName) setBizName(settings.bizName);
-        if (settings.bizCeo) setBizCeo(settings.bizCeo);
-        if (settings.bizAddress) setBizAddress(settings.bizAddress);
-        if (settings.bizType) setBizType(settings.bizType);
-        if (settings.bizItem) setBizItem(settings.bizItem);
-        if (settings.bizPhone) setBizPhone(settings.bizPhone);
-        if (settings.memoText) setMemoText(settings.memoText);
+        // 사업자정보는 props가 없을 때만 localStorage에서 로드
+        if (!externalBizRegNo && settings.bizRegNo) setInternalBizRegNo(settings.bizRegNo);
+        if (!externalBizName && settings.bizName) setInternalBizName(settings.bizName);
+        if (!externalBizCeo && settings.bizCeo) setInternalBizCeo(settings.bizCeo);
+        if (!externalBizAddress && settings.bizAddress) setInternalBizAddress(settings.bizAddress);
+        if (!externalBizType && settings.bizType) setInternalBizType(settings.bizType);
+        if (!externalBizItem && settings.bizItem) setInternalBizItem(settings.bizItem);
+        if (!externalBizPhone && settings.bizPhone) setInternalBizPhone(settings.bizPhone);
+        if (!externalMemoText && settings.memoText) setInternalMemoText(settings.memoText);
         if (settings.stampTop !== undefined) setStampTop(settings.stampTop);
         if (settings.stampRight !== undefined) setStampRight(settings.stampRight);
         if (settings.stampSize !== undefined) setStampSize(settings.stampSize);
@@ -175,18 +249,30 @@ export default function HotangQuoteForm({
   const manualTotal = manualRows.reduce((sum, row) => sum + (row.qty * row.price), 0);
   const grandTotal = Math.round(totals.grandTotal) + manualTotal;
 
-  // 수동 행 추가/삭제
+  // 수동 행 추가/삭제 (props 우선, 없으면 내부 상태)
   const addManualRow = () => {
     if (items.length + manualRows.length >= MAX_ROWS) return;
-    setManualRows(prev => [...prev, { id: crypto.randomUUID(), name: '', qty: 1, price: 0 }]);
+    if (externalAddManualRow) {
+      externalAddManualRow();
+    } else {
+      setInternalManualRows(prev => [...prev, { id: crypto.randomUUID(), name: '', qty: 1, price: 0 }]);
+    }
   };
 
   const removeManualRow = (id: string) => {
-    setManualRows(prev => prev.filter(r => r.id !== id));
+    if (externalRemoveManualRow) {
+      externalRemoveManualRow(id);
+    } else {
+      setInternalManualRows(prev => prev.filter(r => r.id !== id));
+    }
   };
 
   const updateManualRow = (id: string, field: keyof ManualRow, value: string | number) => {
-    setManualRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+    if (externalUpdateManualRow) {
+      externalUpdateManualRow(id, field, value);
+    } else {
+      setInternalManualRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+    }
   };
 
   return (
