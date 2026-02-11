@@ -1,5 +1,5 @@
 // 엑셀 생성 유틸리티
-// exceljs 라이브러리를 사용하여 견적서/거래명세서를 엑셀 파일로 다운로드 (테두리/스타일 지원)
+// exceljs 라이브러리를 사용하여 견적서/거래명세서를 엑셀 파일로 다운로드 (웹과 동일한 양식)
 
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -52,31 +52,6 @@ function formatDateKorean(dateStr: string): string {
   return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
 }
 
-// 금액 재계산 (거래명세서용)
-function recalcTotals(
-  totals: QuoteTotals,
-  vatIncluded: boolean
-): { supplyAmount: number; vat: number; grandTotal: number } {
-  if (vatIncluded) {
-    return {
-      supplyAmount: totals.supplyAmount,
-      vat: totals.vat,
-      grandTotal: totals.grandTotal,
-    };
-  } else {
-    const afterDiscount = totals.subtotal - totals.discountAmount;
-    const supplyAmount = afterDiscount;
-    const vat = Math.round(supplyAmount * 0.1);
-    const grandTotal = supplyAmount + vat;
-    return { supplyAmount, vat, grandTotal };
-  }
-}
-
-// 할인 적용 단가 계산 (거래명세서용)
-function getItemDisplayPrice(unitPrice: number, discountRate: number): number {
-  return Math.round(unitPrice * (1 - discountRate / 100));
-}
-
 // 품명 정리
 function formatProductName(name: string, selectedOption?: string): string {
   let formatted = name.replace(/\s*\(파트너\s*전용\)\s*/gi, '').trim();
@@ -100,7 +75,7 @@ const thinBorder: Partial<ExcelJS.Borders> = {
 const headerFill: ExcelJS.Fill = {
   type: 'pattern',
   pattern: 'solid',
-  fgColor: { argb: 'FFF0F0F0' },
+  fgColor: { argb: 'FFF5F5F5' },
 };
 
 interface ExcelQuoteOptions {
@@ -111,7 +86,7 @@ interface ExcelQuoteOptions {
 }
 
 /**
- * 견적서를 엑셀 파일로 다운로드 (테두리/스타일 포함)
+ * 견적서를 엑셀 파일로 다운로드 (웹 견적서와 동일한 양식)
  */
 export async function downloadQuoteExcel({
   items,
@@ -126,95 +101,128 @@ export async function downloadQuoteExcel({
   const workbook = new ExcelJS.Workbook();
   const ws = workbook.addWorksheet('견적서');
 
-  // 열 너비 설정
+  // 열 너비 설정 (A~H)
+  // A: No/날짜라벨, B: 품명/날짜값, C: 규격, D: 수량/사업자라벨, E: 단가/사업자값, F: 견적가, G: 비고
   ws.columns = [
-    { width: 6 },   // A: No
-    { width: 28 },  // B: 품명
-    { width: 8 },   // C: 규격
-    { width: 10 },  // D: 수량
-    { width: 12 },  // E: 단가
-    { width: 14 },  // F: 견적가
-    { width: 10 },  // G: 비고
+    { width: 6 },   // A
+    { width: 30 },  // B
+    { width: 8 },   // C
+    { width: 12 },  // D
+    { width: 20 },  // E
+    { width: 14 },  // F
+    { width: 8 },   // G
   ];
 
   let row = 1;
 
   // Row 1: No.
   ws.getCell(`A${row}`).value = 'No.';
+  ws.getCell(`A${row}`).font = { size: 9, color: { argb: 'FF666666' } };
   row += 2;
 
-  // Row 3: 견적서 제목 (병합)
+  // Row 3: 견적서 제목
   ws.mergeCells(`A${row}:G${row}`);
   const titleCell = ws.getCell(`A${row}`);
-  titleCell.value = '견 적 서';
+  titleCell.value = '견    적    서';
   titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
   titleCell.font = { size: 16, bold: true };
   row += 2;
 
-  // Row 5-8: 날짜/수신/참조 + 사업자정보
-  // 날짜
+  // Row 5-8: 날짜/수신/참조 (왼쪽) + 사업자정보 (오른쪽)
+  // 날짜 행
   ws.getCell(`A${row}`).value = '날 짜 :';
+  ws.getCell(`A${row}`).font = { size: 10 };
   ws.getCell(`B${row}`).value = formatDateKorean(formData.date);
+  ws.getCell(`B${row}`).font = { size: 10 };
+  ws.getCell(`B${row}`).border = { bottom: { style: 'thin' } };
+  // 사업자소재지
   ws.getCell(`D${row}`).value = '사업자소재지';
   ws.getCell(`D${row}`).fill = headerFill;
   ws.getCell(`D${row}`).border = thinBorder;
+  ws.getCell(`D${row}`).font = { size: 9 };
+  ws.getCell(`D${row}`).alignment = { vertical: 'middle' };
   ws.mergeCells(`E${row}:G${row}`);
   ws.getCell(`E${row}`).value = template.address;
   ws.getCell(`E${row}`).border = thinBorder;
+  ws.getCell(`E${row}`).font = { size: 9 };
+  ws.getCell(`E${row}`).alignment = { vertical: 'middle', wrapText: true };
   row++;
 
-  // 수신
+  // 수신 행
   ws.getCell(`A${row}`).value = '수 신 :';
+  ws.getCell(`A${row}`).font = { size: 10 };
   ws.getCell(`B${row}`).value = formData.recipient || '';
+  ws.getCell(`B${row}`).font = { size: 10 };
+  ws.getCell(`B${row}`).border = { bottom: { style: 'thin' } };
+  // 상호
   ws.getCell(`D${row}`).value = '상호';
   ws.getCell(`D${row}`).fill = headerFill;
   ws.getCell(`D${row}`).border = thinBorder;
+  ws.getCell(`D${row}`).font = { size: 9 };
+  ws.getCell(`D${row}`).alignment = { vertical: 'middle' };
   ws.mergeCells(`E${row}:G${row}`);
   ws.getCell(`E${row}`).value = template.companyName;
   ws.getCell(`E${row}`).border = thinBorder;
+  ws.getCell(`E${row}`).font = { size: 9 };
+  ws.getCell(`E${row}`).alignment = { vertical: 'middle' };
   row++;
 
-  // 참조
+  // 참조 행
   ws.getCell(`A${row}`).value = '참 조 :';
+  ws.getCell(`A${row}`).font = { size: 10 };
+  ws.getCell(`B${row}`).value = '';
+  ws.getCell(`B${row}`).border = { bottom: { style: 'thin' } };
+  // 대표자성명
   ws.getCell(`D${row}`).value = '대표자성명';
   ws.getCell(`D${row}`).fill = headerFill;
   ws.getCell(`D${row}`).border = thinBorder;
+  ws.getCell(`D${row}`).font = { size: 9 };
+  ws.getCell(`D${row}`).alignment = { vertical: 'middle' };
   ws.mergeCells(`E${row}:G${row}`);
   ws.getCell(`E${row}`).value = template.representative;
   ws.getCell(`E${row}`).border = thinBorder;
+  ws.getCell(`E${row}`).font = { size: 9 };
+  ws.getCell(`E${row}`).alignment = { vertical: 'middle' };
   row++;
 
-  // 전화번호
+  // 빈 행 (왼쪽) + 전화번호
   ws.getCell(`D${row}`).value = '전화번호';
   ws.getCell(`D${row}`).fill = headerFill;
   ws.getCell(`D${row}`).border = thinBorder;
+  ws.getCell(`D${row}`).font = { size: 9 };
+  ws.getCell(`D${row}`).alignment = { vertical: 'middle' };
   ws.mergeCells(`E${row}:G${row}`);
   ws.getCell(`E${row}`).value = phone;
   ws.getCell(`E${row}`).border = thinBorder;
+  ws.getCell(`E${row}`).font = { size: 9 };
+  ws.getCell(`E${row}`).alignment = { vertical: 'middle' };
   row += 2;
 
   // 아래와 같이 견적합니다
   ws.mergeCells(`A${row}:G${row}`);
   ws.getCell(`A${row}`).value = '아래와 같이 견적합니다';
+  ws.getCell(`A${row}`).font = { size: 10 };
   row += 2;
 
-  // 합계금액 행
-  ws.getCell(`A${row}`).value = '합계금액';
-  ws.getCell(`A${row}`).fill = headerFill;
+  // 합계금액 테이블
+  ws.mergeCells(`A${row}:A${row + 1}`);
+  ws.getCell(`A${row}`).value = '합계금액\n(부가세 포함)';
+  ws.getCell(`A${row}`).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
   ws.getCell(`A${row}`).border = thinBorder;
-  ws.mergeCells(`B${row}:D${row}`);
-  ws.getCell(`B${row}`).value = `${numberToKorean(grandTotal)} 원정`;
-  ws.getCell(`B${row}`).border = thinBorder;
-  ws.getCell(`B${row}`).alignment = { horizontal: 'center' };
-  ws.mergeCells(`E${row}:G${row}`);
-  ws.getCell(`E${row}`).value = `(₩${grandTotal.toLocaleString()})`;
-  ws.getCell(`E${row}`).border = thinBorder;
-  ws.getCell(`E${row}`).alignment = { horizontal: 'center' };
-  row++;
-
-  ws.getCell(`A${row}`).value = '(부가세 포함)';
   ws.getCell(`A${row}`).font = { size: 9 };
-  row += 2;
+  
+  ws.mergeCells(`B${row}:D${row + 1}`);
+  ws.getCell(`B${row}`).value = `${numberToKorean(grandTotal)} 원정`;
+  ws.getCell(`B${row}`).alignment = { horizontal: 'center', vertical: 'middle' };
+  ws.getCell(`B${row}`).border = thinBorder;
+  ws.getCell(`B${row}`).font = { size: 12 };
+  
+  ws.mergeCells(`E${row}:G${row + 1}`);
+  ws.getCell(`E${row}`).value = `(₩${grandTotal.toLocaleString()})`;
+  ws.getCell(`E${row}`).alignment = { horizontal: 'center', vertical: 'middle' };
+  ws.getCell(`E${row}`).border = thinBorder;
+  ws.getCell(`E${row}`).font = { size: 12 };
+  row += 3;
 
   // 품목 테이블 헤더
   const headers = ['No.', '품명', '규격', '수량', '단가', '견적가', '비고'];
@@ -225,7 +233,7 @@ export async function downloadQuoteExcel({
     cell.fill = headerFill;
     cell.border = thinBorder;
     cell.alignment = { horizontal: 'center', vertical: 'middle' };
-    cell.font = { bold: true };
+    cell.font = { bold: true, size: 9 };
   });
   row++;
 
@@ -254,8 +262,9 @@ export async function downloadQuoteExcel({
         const cell = dataRow.getCell(idx + 1);
         cell.value = v;
         cell.border = thinBorder;
-        if (idx === 0 || idx === 2 || idx === 3) cell.alignment = { horizontal: 'center' };
-        if (idx === 4 || idx === 5) cell.alignment = { horizontal: 'right' };
+        cell.font = { size: 9 };
+        if (idx === 0 || idx === 2 || idx === 3) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        if (idx === 4 || idx === 5) cell.alignment = { horizontal: 'right', vertical: 'middle' };
       });
     } else {
       const values = [rowNum, '', rowNum <= 6 ? 'EA' : '', '', '', '-', ''];
@@ -263,7 +272,8 @@ export async function downloadQuoteExcel({
         const cell = dataRow.getCell(idx + 1);
         cell.value = v;
         cell.border = thinBorder;
-        if (idx === 0 || idx === 2 || idx === 5) cell.alignment = { horizontal: 'center' };
+        cell.font = { size: 9 };
+        if (idx === 0 || idx === 2 || idx === 5) cell.alignment = { horizontal: 'center', vertical: 'middle' };
       });
     }
     row++;
@@ -273,23 +283,29 @@ export async function downloadQuoteExcel({
   const sumRow = ws.getRow(row);
   ws.mergeCells(`A${row}:E${row}`);
   sumRow.getCell(1).value = '합 계';
-  sumRow.getCell(1).alignment = { horizontal: 'center' };
+  sumRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
   sumRow.getCell(1).border = thinBorder;
   sumRow.getCell(1).fill = headerFill;
-  sumRow.getCell(1).font = { bold: true };
+  sumRow.getCell(1).font = { bold: true, size: 9 };
   sumRow.getCell(6).value = grandTotal > 0 ? grandTotal.toLocaleString() : '-';
   sumRow.getCell(6).border = thinBorder;
-  sumRow.getCell(6).alignment = { horizontal: 'right' };
-  sumRow.getCell(6).font = { bold: true };
+  sumRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
+  sumRow.getCell(6).font = { bold: true, size: 9 };
   sumRow.getCell(7).value = '';
   sumRow.getCell(7).border = thinBorder;
   row += 2;
 
   // MEMO
+  ws.mergeCells(`A${row}:G${row}`);
   ws.getCell(`A${row}`).value = '[MEMO]';
-  ws.getCell(`A${row}`).font = { bold: true };
+  ws.getCell(`A${row}`).font = { bold: true, size: 9 };
+  ws.getCell(`A${row}`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
   row++;
+  
+  ws.mergeCells(`A${row}:G${row}`);
   ws.getCell(`A${row}`).value = '*배송은 택배시 무료입니다.';
+  ws.getCell(`A${row}`).font = { size: 9 };
+  ws.getCell(`A${row}`).border = { bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
 
   // 파일 다운로드
   const buffer = await workbook.xlsx.writeBuffer();
@@ -309,22 +325,23 @@ export async function downloadInvoiceExcel({
   const template: BusinessInfo | undefined = getTemplateById(formData.templateId);
   if (!template) return;
 
-  const { supplyAmount, vat, grandTotal } = recalcTotals(totals, formData.vatIncluded);
+  const grandTotal = Math.round(totals.grandTotal);
+  const supplyAmount = Math.round(grandTotal / 1.1);
+  const vat = grandTotal - supplyAmount;
 
   const workbook = new ExcelJS.Workbook();
   const ws = workbook.addWorksheet('거래명세서');
 
-  // 열 너비 설정
   ws.columns = [
-    { width: 5 },   // No
-    { width: 8 },   // 월일
-    { width: 22 },  // 품명
-    { width: 18 },  // 규격
-    { width: 8 },   // 수량
-    { width: 12 },  // 단가
-    { width: 14 },  // 공급가액
-    { width: 12 },  // 세액
-    { width: 10 },  // 비고
+    { width: 5 },
+    { width: 8 },
+    { width: 22 },
+    { width: 18 },
+    { width: 8 },
+    { width: 12 },
+    { width: 14 },
+    { width: 12 },
+    { width: 10 },
   ];
 
   let row = 1;
@@ -339,10 +356,9 @@ export async function downloadInvoiceExcel({
 
   // 공급자 정보
   ws.getCell(`A${row}`).value = '[공급자]';
-  ws.getCell(`A${row}`).font = { bold: true };
+  ws.getCell(`A${row}`).font = { bold: true, size: 10 };
   row++;
 
-  // 공급자 테이블
   const supplierData = [
     ['상호', template.companyName, '등록번호', template.registrationNumber],
     ['대표자', template.representative, '업태', template.businessType],
@@ -353,38 +369,46 @@ export async function downloadInvoiceExcel({
     ws.getCell(`A${row}`).value = rowData[0];
     ws.getCell(`A${row}`).fill = headerFill;
     ws.getCell(`A${row}`).border = thinBorder;
+    ws.getCell(`A${row}`).font = { size: 9 };
     ws.mergeCells(`B${row}:C${row}`);
     ws.getCell(`B${row}`).value = rowData[1];
     ws.getCell(`B${row}`).border = thinBorder;
+    ws.getCell(`B${row}`).font = { size: 9 };
     ws.getCell(`D${row}`).value = rowData[2];
     ws.getCell(`D${row}`).fill = headerFill;
     ws.getCell(`D${row}`).border = thinBorder;
+    ws.getCell(`D${row}`).font = { size: 9 };
     ws.mergeCells(`E${row}:F${row}`);
     ws.getCell(`E${row}`).value = rowData[3];
     ws.getCell(`E${row}`).border = thinBorder;
+    ws.getCell(`E${row}`).font = { size: 9 };
     row++;
   });
   row++;
 
   // 공급받는자 정보
   ws.getCell(`A${row}`).value = '[공급받는자]';
-  ws.getCell(`A${row}`).font = { bold: true };
+  ws.getCell(`A${row}`).font = { bold: true, size: 10 };
   row++;
 
   ws.getCell(`A${row}`).value = '상호';
   ws.getCell(`A${row}`).fill = headerFill;
   ws.getCell(`A${row}`).border = thinBorder;
+  ws.getCell(`A${row}`).font = { size: 9 };
   ws.mergeCells(`B${row}:D${row}`);
   ws.getCell(`B${row}`).value = formData.recipient || '(미입력)';
   ws.getCell(`B${row}`).border = thinBorder;
+  ws.getCell(`B${row}`).font = { size: 9 };
   row++;
 
   ws.getCell(`A${row}`).value = '거래일자';
   ws.getCell(`A${row}`).fill = headerFill;
   ws.getCell(`A${row}`).border = thinBorder;
+  ws.getCell(`A${row}`).font = { size: 9 };
   ws.mergeCells(`B${row}:D${row}`);
   ws.getCell(`B${row}`).value = formData.date;
   ws.getCell(`B${row}`).border = thinBorder;
+  ws.getCell(`B${row}`).font = { size: 9 };
   row += 2;
 
   // 항목 테이블 헤더
@@ -396,88 +420,50 @@ export async function downloadInvoiceExcel({
     cell.fill = headerFill;
     cell.border = thinBorder;
     cell.alignment = { horizontal: 'center', vertical: 'middle' };
-    cell.font = { bold: true };
+    cell.font = { bold: true, size: 9 };
   });
   row++;
 
-  // 거래일자에서 MM/DD 추출
   const [, mm, dd] = formData.date.split('-');
   const dateShort = `${mm}/${dd}`;
 
-  // 항목
   let rowIdx = 1;
   items.forEach((item) => {
     const optionText = Object.entries(item.selectedOptions)
       .map(([, v]) => v)
       .join(', ');
 
-    const displayUnitPrice = getItemDisplayPrice(item.unitPrice, totals.discountRate);
-    const displayTotal = displayUnitPrice * item.quantity;
-    const itemVat = formData.vatIncluded
-      ? displayTotal - Math.round(displayTotal / 1.1)
-      : Math.round(displayTotal * 0.1);
-    const itemSupply = formData.vatIncluded
-      ? Math.round(displayTotal / 1.1)
-      : displayTotal;
+    const itemTotal = item.unitPrice * item.quantity;
+    const itemSupply = Math.round(itemTotal / 1.1);
+    const itemVat = itemTotal - itemSupply;
 
     const dataRow = ws.getRow(row);
     const values = [
       rowIdx,
       dateShort,
-      item.product.product_name,
+      formatProductName(item.product.product_name, optionText),
       optionText || '-',
       item.quantity,
-      displayUnitPrice.toLocaleString(),
+      item.unitPrice.toLocaleString(),
       itemSupply.toLocaleString(),
       itemVat.toLocaleString(),
-      totals.discountRate > 0 ? `${totals.discountRate}%` : '',
+      '',
     ];
     values.forEach((v, idx) => {
       const cell = dataRow.getCell(idx + 1);
       cell.value = v;
       cell.border = thinBorder;
-      if (idx === 0 || idx === 1 || idx === 4) cell.alignment = { horizontal: 'center' };
-      if (idx >= 5 && idx <= 7) cell.alignment = { horizontal: 'right' };
+      cell.font = { size: 9 };
+      if (idx === 0 || idx === 1 || idx === 4) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      if (idx >= 5 && idx <= 7) cell.alignment = { horizontal: 'right', vertical: 'middle' };
     });
     row++;
     rowIdx++;
-
-    // 추가상품
-    item.addons.forEach((addon) => {
-      const addonTotal = addon.unitPrice * addon.quantity;
-      const addonVat = formData.vatIncluded
-        ? addonTotal - Math.round(addonTotal / 1.1)
-        : Math.round(addonTotal * 0.1);
-      const addonSupply = formData.vatIncluded
-        ? Math.round(addonTotal / 1.1)
-        : addonTotal;
-      
-      const addonRow = ws.getRow(row);
-      const addonValues = [
-        '',
-        dateShort,
-        `  +${addon.name}`,
-        '추가상품',
-        addon.quantity,
-        addon.unitPrice.toLocaleString(),
-        addonSupply.toLocaleString(),
-        addonVat.toLocaleString(),
-        '',
-      ];
-      addonValues.forEach((v, idx) => {
-        const cell = addonRow.getCell(idx + 1);
-        cell.value = v;
-        cell.border = thinBorder;
-        if (idx === 1 || idx === 4) cell.alignment = { horizontal: 'center' };
-        if (idx >= 5 && idx <= 7) cell.alignment = { horizontal: 'right' };
-      });
-      row++;
-    });
   });
 
   row++;
 
-  // 합계 부분
+  // 합계
   const summaryData = [
     ['공급가액', supplyAmount],
     ['세 액', vat],
@@ -490,27 +476,17 @@ export async function downloadInvoiceExcel({
     ws.getCell(`F${row}`).value = sd[0];
     ws.getCell(`F${row}`).fill = headerFill;
     ws.getCell(`F${row}`).border = thinBorder;
-    ws.getCell(`F${row}`).alignment = { horizontal: 'center' };
-    ws.getCell(`F${row}`).font = sd[0] === '합 계' ? { bold: true } : {};
+    ws.getCell(`F${row}`).alignment = { horizontal: 'center', vertical: 'middle' };
+    ws.getCell(`F${row}`).font = sd[0] === '합 계' ? { bold: true, size: 9 } : { size: 9 };
     ws.getCell(`G${row}`).value = (sd[1] as number).toLocaleString();
     ws.getCell(`G${row}`).border = thinBorder;
-    ws.getCell(`G${row}`).alignment = { horizontal: 'right' };
-    ws.getCell(`G${row}`).font = sd[0] === '합 계' ? { bold: true } : {};
+    ws.getCell(`G${row}`).alignment = { horizontal: 'right', vertical: 'middle' };
+    ws.getCell(`G${row}`).font = sd[0] === '합 계' ? { bold: true, size: 9 } : { size: 9 };
     ws.mergeCells(`H${row}:I${row}`);
     ws.getCell(`H${row}`).border = thinBorder;
     row++;
   });
 
-  // 비고
-  if (formData.memo) {
-    row++;
-    ws.getCell(`A${row}`).value = '비고';
-    ws.getCell(`A${row}`).font = { bold: true };
-    row++;
-    ws.getCell(`A${row}`).value = formData.memo;
-  }
-
-  // 파일 다운로드
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   saveAs(blob, `${fileName}.xlsx`);
