@@ -198,7 +198,8 @@ export default function QuoteItemList({
                 }
 
                 const itemTotal = calcItemTotal(item);
-                const itemTotalWithVat = Math.round(itemTotal * 1.1);
+                // 카페24 가격이 이미 부가세 포함이므로 10% 추가 안 함
+                const itemTotalWithVat = Math.round(itemTotal);
 
                 return (
                   <tr key={item.id} className="hover:bg-blue-50">
