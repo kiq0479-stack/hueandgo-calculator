@@ -308,15 +308,15 @@ export default function QuoteItemList({
         onUpdateUnitPrice={onUpdateUnitPrice}
         // 공유 상태 (견적서/거래명세서 동기화)
         manualRows={manualRows}
-        onAddManualRow={onAddManualRow}
-        onUpdateManualRow={onUpdateManualRow}
-        onRemoveManualRow={onRemoveManualRow}
+        onAddManualRow={addManualRow}
+        onUpdateManualRow={updateManualRow}
+        onRemoveManualRow={removeManualRow}
         quoteDate={quoteDate}
-        onQuoteDateChange={onQuoteDateChange}
+        onQuoteDateChange={setQuoteDate}
         recipient={recipient}
-        onRecipientChange={onRecipientChange}
+        onRecipientChange={setRecipient}
         memoText={memoText}
-        onMemoTextChange={onMemoTextChange}
+        onMemoTextChange={setMemoText}
       />
     );
   }

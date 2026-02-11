@@ -624,7 +624,11 @@ export default function HotangQuoteForm({
           type="button"
           onClick={() => {
             onClearAll();
-            setManualRows([]);
+            // manualRows는 page.tsx의 clearAllWithManual에서 함께 초기화됨
+            // 내부 상태만 사용하는 경우를 위해 fallback
+            if (!externalManualRows) {
+              setInternalManualRows([]);
+            }
           }}
           className="w-full rounded border border-red-200 px-3 py-1 text-[11px] text-red-500 hover:bg-red-50"
         >
