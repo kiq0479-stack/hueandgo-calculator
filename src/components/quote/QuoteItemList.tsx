@@ -108,6 +108,18 @@ export default function QuoteItemList({
   const [stampRight, setStampRight] = useState(8);
   const [stampSize, setStampSize] = useState(40);
 
+  // 레이아웃 상태
+  const [leftWidth, setLeftWidth] = useState(42); // 날짜/수신/참조 영역 너비 (%)
+  const [bizLabelWidth, setBizLabelWidth] = useState(70); // 사업자정보 라벨 너비 (px)
+  const [colWidths, setColWidths] = useState({
+    no: 28,      // No. 열 (px)
+    spec: 36,    // 규격 열 (px)
+    qty: 48,     // 수량 열 (px)
+    price: 56,   // 단가 열 (px)
+    total: 72,   // 견적가 열 (px)
+    note: 36,    // 비고 열 (px)
+  });
+
   // 컴포넌트 마운트 시 오늘 날짜로 초기화
   useEffect(() => {
     setQuoteDate(getTodayFormatted());
@@ -142,7 +154,7 @@ export default function QuoteItemList({
         {/* 날짜/수신/참조 + 사업자정보 테이블 */}
         <div className="flex mx-2">
           {/* 왼쪽: 날짜, 수신, 참조 (입력 가능) */}
-          <div className="w-[42%] pr-3">
+          <div className="pr-3" style={{ width: `${leftWidth}%` }}>
             <div className="flex h-6">
               <div className="w-12 flex items-center shrink-0">날 짜 :</div>
               <div className="flex-1 border-b border-black">
@@ -183,9 +195,9 @@ export default function QuoteItemList({
           </div>
           
           {/* 오른쪽: 사업자정보 테이블 */}
-          <div className="w-[58%] border border-black text-[10px] relative">
+          <div className="border border-black text-[10px] relative" style={{ width: `${100 - leftWidth}%` }}>
             <div className="flex h-6 border-b border-black">
-              <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">사업자소재지</div>
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0" style={{ width: `${bizLabelWidth}px` }}>사업자소재지</div>
               <div className="flex-1 px-1 flex items-center">
                 <input
                   type="text"
@@ -196,7 +208,7 @@ export default function QuoteItemList({
               </div>
             </div>
             <div className="flex h-6 border-b border-black">
-              <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">상호</div>
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0" style={{ width: `${bizLabelWidth}px` }}>상호</div>
               <div className="flex-1 px-1 flex items-center">
                 <input
                   type="text"
@@ -207,7 +219,7 @@ export default function QuoteItemList({
               </div>
             </div>
             <div className="flex h-6 border-b border-black">
-              <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">대표자성명</div>
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0" style={{ width: `${bizLabelWidth}px` }}>대표자성명</div>
               <div className="flex-1 px-1 flex items-center">
                 <input
                   type="text"
@@ -218,7 +230,7 @@ export default function QuoteItemList({
               </div>
             </div>
             <div className="flex h-6">
-              <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-black shrink-0">전화번호</div>
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0" style={{ width: `${bizLabelWidth}px` }}>전화번호</div>
               <div className="flex-1 px-1 flex items-center">
                 <input
                   type="text"
@@ -272,13 +284,13 @@ export default function QuoteItemList({
           <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th className="border-b border-r border-black px-1 py-1 text-center w-8 bg-gray-50">No.</th>
+                <th className="border-b border-r border-black px-1 py-1 text-center bg-gray-50" style={{ width: `${colWidths.no}px` }}>No.</th>
                 <th className="border-b border-r border-black px-1 py-1 text-center bg-gray-50">품명</th>
-                <th className="border-b border-r border-black px-1 py-1 text-center w-10 bg-gray-50">규격</th>
-                <th className="border-b border-r border-black px-1 py-1 text-center w-12 bg-gray-50">수량</th>
-                <th className="border-b border-r border-black px-1 py-1 text-center w-16 bg-gray-50">단가</th>
-                <th className="border-b border-r border-black px-1 py-1 text-center w-20 bg-gray-50">견적가</th>
-                <th className="border-b border-black px-1 py-1 text-center w-10 bg-gray-50">비고</th>
+                <th className="border-b border-r border-black px-1 py-1 text-center bg-gray-50" style={{ width: `${colWidths.spec}px` }}>규격</th>
+                <th className="border-b border-r border-black px-1 py-1 text-center bg-gray-50" style={{ width: `${colWidths.qty}px` }}>수량</th>
+                <th className="border-b border-r border-black px-1 py-1 text-center bg-gray-50" style={{ width: `${colWidths.price}px` }}>단가</th>
+                <th className="border-b border-r border-black px-1 py-1 text-center bg-gray-50" style={{ width: `${colWidths.total}px` }}>견적가</th>
+                <th className="border-b border-black px-1 py-1 text-center bg-gray-50" style={{ width: `${colWidths.note}px` }}>비고</th>
               </tr>
             </thead>
             <tbody>
@@ -417,6 +429,67 @@ export default function QuoteItemList({
               className="flex-1"
             />
             <span className="w-10 text-right">{stampSize}px</span>
+          </div>
+        </div>
+      </details>
+
+      {/* 레이아웃 설정 */}
+      <details className="text-[11px]">
+        <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
+          ▸ 레이아웃 설정
+        </summary>
+        <div className="mt-2 p-2 bg-gray-50 rounded space-y-2">
+          <div className="font-medium text-gray-600 mb-1">영역 너비</div>
+          <div className="flex items-center gap-2">
+            <label className="w-28">날짜/수신/참조</label>
+            <input
+              type="range"
+              min={30}
+              max={55}
+              value={leftWidth}
+              onChange={(e) => setLeftWidth(Number(e.target.value))}
+              className="flex-1"
+            />
+            <span className="w-10 text-right">{leftWidth}%</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="w-28">사업자 라벨</label>
+            <input
+              type="range"
+              min={50}
+              max={90}
+              value={bizLabelWidth}
+              onChange={(e) => setBizLabelWidth(Number(e.target.value))}
+              className="flex-1"
+            />
+            <span className="w-10 text-right">{bizLabelWidth}px</span>
+          </div>
+          <div className="font-medium text-gray-600 mt-2 mb-1">표 열 너비</div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-1">
+              <label className="w-12">No.</label>
+              <input type="number" value={colWidths.no} onChange={(e) => setColWidths(p => ({...p, no: Number(e.target.value)}))} className="w-14 px-1 border rounded text-center" />
+            </div>
+            <div className="flex items-center gap-1">
+              <label className="w-12">규격</label>
+              <input type="number" value={colWidths.spec} onChange={(e) => setColWidths(p => ({...p, spec: Number(e.target.value)}))} className="w-14 px-1 border rounded text-center" />
+            </div>
+            <div className="flex items-center gap-1">
+              <label className="w-12">수량</label>
+              <input type="number" value={colWidths.qty} onChange={(e) => setColWidths(p => ({...p, qty: Number(e.target.value)}))} className="w-14 px-1 border rounded text-center" />
+            </div>
+            <div className="flex items-center gap-1">
+              <label className="w-12">단가</label>
+              <input type="number" value={colWidths.price} onChange={(e) => setColWidths(p => ({...p, price: Number(e.target.value)}))} className="w-14 px-1 border rounded text-center" />
+            </div>
+            <div className="flex items-center gap-1">
+              <label className="w-12">견적가</label>
+              <input type="number" value={colWidths.total} onChange={(e) => setColWidths(p => ({...p, total: Number(e.target.value)}))} className="w-14 px-1 border rounded text-center" />
+            </div>
+            <div className="flex items-center gap-1">
+              <label className="w-12">비고</label>
+              <input type="number" value={colWidths.note} onChange={(e) => setColWidths(p => ({...p, note: Number(e.target.value)}))} className="w-14 px-1 border rounded text-center" />
+            </div>
           </div>
         </div>
       </details>
