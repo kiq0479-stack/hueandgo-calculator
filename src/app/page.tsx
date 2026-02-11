@@ -46,16 +46,16 @@ export default function Home() {
 
       <main className="mx-auto max-w-7xl px-6 py-8 space-y-8">
         {/* 상단: 계산기 + 견적 항목 (2컬럼) */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* 왼쪽: 계산기 */}
-          <section className="rounded-xl border border-gray-200 bg-white p-6">
-            <h2 className="mb-4 text-base font-semibold text-gray-800">단가 계산</h2>
+          <section className="rounded-xl border border-gray-200 bg-white p-8 min-h-[600px]">
+            <h2 className="mb-6 text-lg font-semibold text-gray-800">단가 계산</h2>
             <Calculator onAddToQuote={addItem} />
           </section>
 
           {/* 오른쪽: 견적 항목 */}
-          <section className="rounded-xl border border-gray-200 bg-white p-6">
-            <h2 className="mb-4 text-base font-semibold text-gray-800">
+          <section className="rounded-xl border border-gray-200 bg-white p-8 min-h-[600px]">
+            <h2 className="mb-6 text-lg font-semibold text-gray-800">
               견적 항목
               {items.length > 0 && (
                 <span className="ml-2 text-sm font-normal text-gray-400">

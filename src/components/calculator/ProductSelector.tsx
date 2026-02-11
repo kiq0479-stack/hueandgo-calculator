@@ -116,7 +116,7 @@ export default function ProductSelector({ onSelect, selectedProductNo }: Product
 
       {/* 상품 목록 */}
       {!loading && !error && (
-        <div className="max-h-80 overflow-y-auto rounded-lg border border-gray-200">
+        <div className="max-h-[400px] overflow-y-auto rounded-lg border border-gray-200">
           {sorted.length === 0 ? (
             <p className="p-4 text-center text-sm text-gray-400">
               {searchTerm ? '검색 결과가 없습니다.' : '상품이 없습니다.'}
