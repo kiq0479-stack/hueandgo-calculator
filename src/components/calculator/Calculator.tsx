@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { Cafe24Product, Cafe24ProductOption, Cafe24Variant } from '@/types/cafe24';
+import type { Cafe24Product, Cafe24ProductOption, Cafe24Variant, Cafe24AdditionalProduct } from '@/types/cafe24';
 import ProductSelector from './ProductSelector';
 import OptionSelector from './OptionSelector';
 import QuantityInput from './QuantityInput';
@@ -26,6 +26,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const [selectedProduct, setSelectedProduct] = useState<Cafe24Product | null>(null);
   const [productOptions, setProductOptions] = useState<Cafe24ProductOption[]>([]);
   const [variants, setVariants] = useState<Cafe24Variant[]>([]);
+  const [additionalProducts, setAdditionalProducts] = useState<Cafe24AdditionalProduct[]>([]);
   const [optionsApiError, setOptionsApiError] = useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [optionAmounts, setOptionAmounts] = useState<Record<string, number>>({});
@@ -51,16 +52,19 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
         const data = await res.json();
         setProductOptions(data.options || []);
         setVariants(data.variants || []);
+        setAdditionalProducts(data.additionalProducts || []);
         setOptionsApiError(data.optionsApiError || null);
       } else {
         setProductOptions([]);
         setVariants([]);
+        setAdditionalProducts([]);
         setOptionsApiError('API 호출 실패');
       }
     } catch {
       // 옵션 로드 실패 시 빈 상태로 유지
       setProductOptions([]);
       setVariants([]);
+      setAdditionalProducts([]);
       setOptionsApiError('네트워크 에러');
     } finally {
       setLoadingDetail(false);
@@ -149,10 +153,10 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
         <p className="text-sm text-gray-500">옵션 정보 불러오는 중...</p>
       )}
 
-      {/* DEBUG: 옵션/variants 개수 표시 */}
+      {/* DEBUG: 옵션/variants/추가구성상품 개수 표시 */}
       {selectedProduct && !loadingDetail && (
         <div className="text-xs text-gray-400 bg-yellow-50 p-2 rounded">
-          [DEBUG] options: {productOptions.length}개, variants: {variants.length}개
+          [DEBUG] options: {productOptions.length}개, variants: {variants.length}개, 추가구성상품: {additionalProducts.length}개
           {optionsApiError && <div className="text-red-500">Options API 에러: {optionsApiError}</div>}
         </div>
       )}
