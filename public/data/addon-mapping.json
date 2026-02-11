@@ -1,0 +1,8 @@
+{
+  "P00000BU": [
+    { "product_code": "P00000DV", "product_name": "키링 부자재 조립", "price": 400 },
+    { "product_code": "P000000V", "product_name": "키링 배경제거 (누끼작업)", "price": 5000 },
+    { "product_code": "P00000QW", "product_name": "키링 개별 포장", "price": 100 },
+    { "product_code": "P000000X", "product_name": "앞/뒤 다른 이미지 (디자인 반전)", "price": 2000 }
+  ]
+}

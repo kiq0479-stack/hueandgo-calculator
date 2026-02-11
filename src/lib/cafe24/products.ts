@@ -247,6 +247,10 @@ export async function fetchProductWithDetails(productNo: number) {
     console.log('[DEBUG] Using additionalproducts from product detail embed');
     additionalProducts = embeddedAddons;
   }
+  
+  // Cafe24 API에서 못 가져오면 로컬 매핑 사용 (product_code 기반)
+  // 주의: 이 함수는 서버에서 실행되므로 fetch로 public 파일 접근 불가
+  // 대신 API route에서 처리
   console.log('[DEBUG] final additionalProducts count:', additionalProducts.length);
 
   return { product, options, variants, additionalProducts, optionsApiError };

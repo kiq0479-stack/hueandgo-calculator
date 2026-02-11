@@ -3,6 +3,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated, setTokenStore, type TokenData } from '@/lib/cafe24/auth';
 import { fetchProducts, fetchProductWithDetails } from '@/lib/cafe24/products';
+import fs from 'fs';
+import path from 'path';
+
+// 로컬 추가구성상품 매핑 로드
+function loadAddonMapping(): Record<string, Array<{ product_code: string; product_name: string; price: number }>> {
+  try {
+    const filePath = path.join(process.cwd(), 'public', 'data', 'addon-mapping.json');
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(fileContent);
+  } catch (err) {
+    console.log('[DEBUG] addon-mapping.json 로드 실패:', err);
+    return {};
+  }
+}
 
 // 쿠키에서 토큰 복원
 function restoreTokenFromCookie(request: NextRequest): boolean {
@@ -43,17 +57,42 @@ export async function GET(request: NextRequest) {
         console.log('[DEBUG] fetchProductWithDetails result keys:', Object.keys(data));
         console.log('[DEBUG] options count:', data.options?.length ?? 'undefined');
         console.log('[DEBUG] variants count:', data.variants?.length ?? 'undefined');
-        console.log('[DEBUG] additionalProducts count:', data.additionalProducts?.length ?? 'undefined');
-        console.log('[DEBUG] additionalProducts sample:', JSON.stringify(data.additionalProducts?.[0] || null));
+        console.log('[DEBUG] additionalProducts count (API):', data.additionalProducts?.length ?? 'undefined');
+        
+        // Cafe24 API에서 추가구성상품 못 가져오면 로컬 매핑 사용
+        let finalAdditionalProducts = data.additionalProducts || [];
+        const productCode = data.product?.product_code;
+        
+        if (finalAdditionalProducts.length === 0 && productCode) {
+          const addonMapping = loadAddonMapping();
+          const localAddons = addonMapping[productCode];
+          if (localAddons && localAddons.length > 0) {
+            console.log('[DEBUG] Using local addon mapping for', productCode, ':', localAddons.length, 'items');
+            // 로컬 매핑을 Cafe24 형식으로 변환
+            finalAdditionalProducts = localAddons.map((addon, idx) => ({
+              product_no: idx + 1, // 임시 번호
+              product_code: addon.product_code,
+              product_name: addon.product_name,
+              price: String(addon.price),
+              has_option: 'F' as const,
+            }));
+          }
+        }
+        
+        console.log('[DEBUG] final additionalProducts count:', finalAdditionalProducts.length);
+        
         // 클라이언트에서 확인할 수 있도록 debug 정보 추가
         return NextResponse.json({
           ...data,
+          additionalProducts: finalAdditionalProducts,
           _debug: {
             optionsCount: data.options?.length ?? 0,
             variantsCount: data.variants?.length ?? 0,
-            additionalProductsCount: data.additionalProducts?.length ?? 0,
+            additionalProductsCount: finalAdditionalProducts.length,
             productHasAdditionalproducts: !!data.product?.additionalproducts,
             productAdditionalproductsCount: data.product?.additionalproducts?.length ?? 0,
+            usedLocalMapping: finalAdditionalProducts.length > 0 && (data.additionalProducts?.length ?? 0) === 0,
+            productCode: productCode,
           }
         });
       } catch (detailError) {
