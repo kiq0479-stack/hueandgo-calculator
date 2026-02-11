@@ -280,11 +280,13 @@ export default function QuoteItemList({
                     <td className="border-b border-r border-black px-1 py-0.5 text-center">EA</td>
                     <td className="border-b border-r border-black px-0.5 py-0.5 text-center">
                       <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => onUpdateQuantity(item.id, Math.max(1, Number(e.target.value)))}
-                        min={1}
-                        className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                        type="text"
+                        value={item.quantity.toLocaleString()}
+                        onChange={(e) => {
+                          const num = Number(e.target.value.replace(/,/g, ''));
+                          if (!isNaN(num)) onUpdateQuantity(item.id, Math.max(1, num));
+                        }}
+                        className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
                       />
                     </td>
                     <td className="border-b border-r border-black px-0.5 py-0.5">
