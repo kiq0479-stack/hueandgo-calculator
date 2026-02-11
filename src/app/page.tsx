@@ -34,8 +34,8 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8 space-y-8">
-        {/* 상단: 계산기 + 견적 항목 (2컬럼) */}
+      <main className="mx-auto max-w-7xl px-6 py-8">
+        {/* 단가 계산 + 견적서 (2컬럼) */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* 왼쪽: 계산기 */}
           <section className="rounded-xl border border-gray-200 bg-white p-8 min-h-[600px]">
@@ -94,63 +94,6 @@ export default function Home() {
               onDiscountChange={updateDiscountRate}
               onTruncationChange={updateTruncation}
               onClearAll={clearAll}
-            />
-          </section>
-        </div>
-
-        {/* 거래명세서 - 견적서와 같은 크기 */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          <div></div> {/* 왼쪽 빈 공간 */}
-          <section className="rounded-xl border border-gray-200 bg-white p-8 min-h-[600px]">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold text-gray-800">
-                거래명세서
-                {items.length > 0 && (
-                  <span className="ml-2 text-sm font-normal text-gray-400">
-                    ({items.length}건)
-                  </span>
-                )}
-              </h2>
-              <div className="flex items-center gap-2">
-                {/* 사업자 선택 */}
-                {TEMPLATES.map((tmpl) => (
-                  <button
-                    key={tmpl.id}
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, templateId: tmpl.id }))}
-                    className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
-                      formData.templateId === tmpl.id
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {tmpl.label}
-                  </button>
-                ))}
-                {/* PDF / 엑셀 */}
-                <ExportButtons
-                  documentType="invoice"
-                  previewElementId="invoice-preview"
-                  items={items}
-                  totals={totals}
-                  formData={formData}
-                />
-              </div>
-            </div>
-
-            <QuoteItemList
-              items={items}
-              discountRate={discountRate}
-              truncation={truncation}
-              totals={totals}
-              templateId={formData.templateId}
-              onRemove={removeItem}
-              onUpdateQuantity={updateQuantity}
-              onUpdateUnitPrice={updateUnitPrice}
-              onDiscountChange={updateDiscountRate}
-              onTruncationChange={updateTruncation}
-              onClearAll={clearAll}
-              documentType="invoice"
             />
           </section>
         </div>
