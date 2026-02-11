@@ -42,8 +42,8 @@ export const HOTANGGAMTANG: BusinessInfo = {
   registrationNumber: '812-09-01666',
   representative: '강태호',
   address: '울산광역시 동구 문현로 37, 3층(방어동)',
-  businessType: '제조업, 도매 및 소매업',
-  businessItem: '인형 및 장난감 제조업, 전자상거래',
+  businessType: '제조업',
+  businessItem: '인형 및 장난감 제조업',
   stampImagePath: null, // 호탱감탱 도장은 추후 추출 필요
   label: '호탱감탱',
 };

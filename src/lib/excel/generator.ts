@@ -461,15 +461,15 @@ export async function downloadHotangQuoteExcel({
   }
 
   // 열 너비 설정 (A~G) - 호탱감탱 양식
-  // A: No, B: 수량, C: 규격, D: 품명, E: 단가, F: 견적가, G: 비고
+  // A: No/합계금액, B: 수량, C: 규격, D: 품명/사업자정보, E: 단가, F: 견적가, G: 비고/업종
   ws.columns = [
-    { width: 6 },   // A - No
+    { width: 14 },  // A - No/합계금액(공급가액+부가세) 글자 안 잘리게
     { width: 10 },  // B - 수량
     { width: 8 },   // C - 규격
-    { width: 30 },  // D - 품명
+    { width: 28 },  // D - 품명
     { width: 12 },  // E - 단가
     { width: 14 },  // F - 견적가
-    { width: 10 },  // G - 비고
+    { width: 20 },  // G - 비고/업종 (인형 및 장난감 제조업 글자 안 잘리게)
   ];
 
   let row = 1;
@@ -580,11 +580,11 @@ export async function downloadHotangQuoteExcel({
   ws.getCell(`E${row}`).border = thinBorder;
   ws.getCell(`E${row}`).font = { size: 9 };
   
-  // 도장 이미지 추가
+  // 도장 이미지 추가 - G열 오른쪽 끝, 대표자 행 근처
   if (stampImageId !== null) {
     ws.addImage(stampImageId, {
-      tl: { col: 6.3, row: infoStartRow + 0.5 },
-      ext: { width: 45, height: 45 },
+      tl: { col: 6.6, row: infoStartRow + 0.8 },
+      ext: { width: 40, height: 40 },
     });
   }
   row += 2;
