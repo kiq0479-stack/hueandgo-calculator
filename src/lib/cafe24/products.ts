@@ -122,7 +122,7 @@ export async function fetchProductOptions(
 
 // variants에서 옵션 목록 추출 (Cafe24 Options API 대안)
 function extractOptionsFromVariants(variants: Cafe24Variant[]): Cafe24ProductOption[] {
-  if (!variants.length) return [];
+  if (!variants || !variants.length) return [];
 
   // 옵션별 값 수집
   const optionMap = new Map<string, Map<string, string>>(); // optionName -> (optionValue -> additionalAmount)
@@ -174,19 +174,19 @@ export async function fetchProductWithDetails(productNo: number) {
   ]);
 
   const product = productResult.status === 'fulfilled' ? productResult.value : null;
-  let options = optionsResult.status === 'fulfilled' ? optionsResult.value : [];
-  const variants = variantsResult.status === 'fulfilled' ? variantsResult.value : [];
+  let options = optionsResult.status === 'fulfilled' ? (optionsResult.value || []) : [];
+  const variants = variantsResult.status === 'fulfilled' ? (variantsResult.value || []) : [];
 
   // Options API 실패 또는 빈 배열이면 variants에서 추출
-  if (options.length === 0 && variants.length > 0) {
+  if ((!options || options.length === 0) && variants && variants.length > 0) {
     console.log('[INFO] Options API 빈 결과 → variants에서 옵션 추출');
     options = extractOptionsFromVariants(variants);
   }
 
   // 디버그 로그
   console.log('[DEBUG] product:', product?.product_name);
-  console.log('[DEBUG] options count:', options.length);
-  console.log('[DEBUG] variants count:', variants.length);
+  console.log('[DEBUG] options count:', options?.length ?? 0);
+  console.log('[DEBUG] variants count:', variants?.length ?? 0);
   if (optionsResult.status === 'rejected') {
     console.log('[DEBUG] fetchProductOptions failed:', optionsResult.reason?.message || optionsResult.reason);
   }
