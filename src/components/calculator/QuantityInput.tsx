@@ -11,7 +11,7 @@ export default function QuantityInput({
   quantity,
   onChange,
   min = 1,
-  max = 99999,
+  max = 999999999,
 }: QuantityInputProps) {
   function handleChange(value: number) {
     const clamped = Math.max(min, Math.min(max, value));
