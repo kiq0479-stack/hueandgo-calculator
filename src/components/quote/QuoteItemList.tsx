@@ -96,26 +96,26 @@ export default function QuoteItemList({
         <div className="h-2"></div>
         
         {/* 날짜/수신/참조 + 사업자정보 테이블 */}
-        <div className="flex gap-2 px-2">
-          {/* 왼쪽: 날짜, 수신, 참조 (밑줄 길게) */}
-          <div className="w-[200px] shrink-0">
+        <div className="flex mx-2">
+          {/* 왼쪽: 날짜, 수신, 참조 (밑줄이 사업자정보까지 연장) */}
+          <div className="flex-1">
             <div className="flex h-6">
-              <div className="w-14 flex items-center">날 짜 :</div>
-              <div className="flex-1 border-b border-gray-300"></div>
+              <div className="w-12 flex items-center shrink-0">날 짜 :</div>
+              <div className="flex-1 border-b border-gray-400"></div>
             </div>
             <div className="flex h-6">
-              <div className="w-14 flex items-center">수 신 :</div>
-              <div className="flex-1 border-b border-gray-300"></div>
+              <div className="w-12 flex items-center shrink-0">수 신 :</div>
+              <div className="flex-1 border-b border-gray-400"></div>
             </div>
             <div className="flex h-6">
-              <div className="w-14 flex items-center">참 조 :</div>
-              <div className="flex-1 border-b border-gray-300"></div>
+              <div className="w-12 flex items-center shrink-0">참 조 :</div>
+              <div className="flex-1 border-b border-gray-400"></div>
             </div>
             <div className="h-6"></div>
           </div>
           
           {/* 오른쪽: 사업자정보 테이블 */}
-          <div className="w-[260px] shrink-0 border border-gray-400 text-[10px]">
+          <div className="w-[55%] shrink-0 border border-gray-400 text-[10px]">
             <div className="flex h-6 border-b border-gray-300">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-gray-300 shrink-0">사업자소재지</div>
               <div className="flex-1 px-1 flex items-center text-[9px]">울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동</div>
