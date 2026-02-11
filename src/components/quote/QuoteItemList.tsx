@@ -282,7 +282,6 @@ export default function QuoteItemList({
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
                   className="w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px]"
-                  placeholder="수신자 입력"
                 />
               </div>
             </div>
@@ -294,7 +293,6 @@ export default function QuoteItemList({
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
                   className="w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px]"
-                  placeholder="참조 입력"
                 />
               </div>
             </div>
