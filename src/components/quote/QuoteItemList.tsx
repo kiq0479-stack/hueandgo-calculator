@@ -375,8 +375,8 @@ export default function QuoteItemList({
 
                 return (
                   <tr key={item.id} className="group hover:bg-blue-50">
-                    <td className="border-b border-r border-black px-1 py-0.5 text-center">{rowNum}</td>
-                    <td className="border-b border-r border-black px-1 py-0.5">
+                    <td className="border-b border-r border-black px-1 py-1 text-center">{rowNum}</td>
+                    <td className="border-b border-r border-black px-1 py-1">
                       <div className="flex items-center gap-1">
                         <span title={displayName}>
                           {displayName}
@@ -390,8 +390,8 @@ export default function QuoteItemList({
                         </button>
                       </div>
                     </td>
-                    <td className="border-b border-r border-black px-1 py-0.5 text-center">EA</td>
-                    <td className="border-b border-r border-black px-0.5 py-0.5 text-center">
+                    <td className="border-b border-r border-black px-1 py-1 text-center">EA</td>
+                    <td className="border-b border-r border-black px-0.5 py-1 text-center">
                       <input
                         type="text"
                         value={item.quantity.toLocaleString()}
@@ -402,7 +402,7 @@ export default function QuoteItemList({
                         className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
                       />
                     </td>
-                    <td className="border-b border-r border-black px-0.5 py-0.5">
+                    <td className="border-b border-r border-black px-0.5 py-1">
                       <input
                         type="text"
                         value={item.unitPrice.toLocaleString()}
@@ -413,10 +413,10 @@ export default function QuoteItemList({
                         className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
                       />
                     </td>
-                    <td className="border-b border-r border-black px-1 py-0.5 text-right">
+                    <td className="border-b border-r border-black px-1 py-1 text-right">
                       {itemTotalWithVat.toLocaleString()}
                     </td>
-                    <td className="border-b border-black px-1 py-0.5"></td>
+                    <td className="border-b border-black px-1 py-1"></td>
                   </tr>
                 );
               })}
@@ -426,8 +426,8 @@ export default function QuoteItemList({
                 const rowTotal = row.qty * row.price;
                 return (
                   <tr key={row.id} className="group hover:bg-green-50">
-                    <td className="border-b border-r border-black px-1 py-0.5 text-center">{rowNum}</td>
-                    <td className="border-b border-r border-black px-1 py-0.5">
+                    <td className="border-b border-r border-black px-1 py-1 text-center">{rowNum}</td>
+                    <td className="border-b border-r border-black px-1 py-1">
                       <div className="flex items-center gap-1">
                         <input
                           type="text"
@@ -445,8 +445,8 @@ export default function QuoteItemList({
                         </button>
                       </div>
                     </td>
-                    <td className="border-b border-r border-black px-1 py-0.5 text-center">EA</td>
-                    <td className="border-b border-r border-black px-0.5 py-0.5 text-center">
+                    <td className="border-b border-r border-black px-1 py-1 text-center">EA</td>
+                    <td className="border-b border-r border-black px-0.5 py-1 text-center">
                       <input
                         type="text"
                         value={row.qty.toLocaleString()}
@@ -457,7 +457,7 @@ export default function QuoteItemList({
                         className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
                       />
                     </td>
-                    <td className="border-b border-r border-black px-0.5 py-0.5">
+                    <td className="border-b border-r border-black px-0.5 py-1">
                       <input
                         type="text"
                         value={row.price.toLocaleString()}
@@ -468,10 +468,10 @@ export default function QuoteItemList({
                         className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
                       />
                     </td>
-                    <td className="border-b border-r border-black px-1 py-0.5 text-right">
+                    <td className="border-b border-r border-black px-1 py-1 text-right">
                       {rowTotal.toLocaleString()}
                     </td>
-                    <td className="border-b border-black px-1 py-0.5"></td>
+                    <td className="border-b border-black px-1 py-1"></td>
                   </tr>
                 );
               })}
@@ -481,26 +481,26 @@ export default function QuoteItemList({
                 const showEA = rowNum <= 6;
                 return (
                   <tr key={`empty-${index}`}>
-                    <td className="border-b border-r border-black px-1 py-1.5 text-center">{rowNum}</td>
-                    <td className="border-b border-r border-black px-1 py-1.5"></td>
-                    <td className="border-b border-r border-black px-1 py-1.5 text-center">{showEA ? 'EA' : ''}</td>
-                    <td className="border-b border-r border-black px-1 py-1.5"></td>
-                    <td className="border-b border-r border-black px-1 py-1.5"></td>
-                    <td className="border-b border-r border-black px-1 py-1.5 text-center">-</td>
-                    <td className="border-b border-black px-1 py-1.5"></td>
+                    <td className="border-b border-r border-black px-1 py-1 text-center">{rowNum}</td>
+                    <td className="border-b border-r border-black px-1 py-1"></td>
+                    <td className="border-b border-r border-black px-1 py-1 text-center">{showEA ? 'EA' : ''}</td>
+                    <td className="border-b border-r border-black px-1 py-1"></td>
+                    <td className="border-b border-r border-black px-1 py-1"></td>
+                    <td className="border-b border-r border-black px-1 py-1 text-center">-</td>
+                    <td className="border-b border-black px-1 py-1"></td>
                   </tr>
                 );
               })}
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan={5} className="border-b border-r border-black px-1 py-1.5 text-center font-medium">
+                <td colSpan={5} className="border-b border-r border-black px-1 py-1 text-center font-medium">
                   합 계
                 </td>
-                <td className="border-b border-r border-black px-1 py-1.5 text-right font-medium">
+                <td className="border-b border-r border-black px-1 py-1 text-right font-medium">
                   {grandTotal > 0 ? grandTotal.toLocaleString() : '-'}
                 </td>
-                <td className="border-b border-black px-1 py-1.5"></td>
+                <td className="border-b border-black px-1 py-1"></td>
               </tr>
             </tfoot>
           </table>
@@ -631,7 +631,7 @@ export default function QuoteItemList({
       <button
         type="button"
         onClick={addManualRow}
-        className="w-full rounded border border-green-300 bg-green-50 px-3 py-1.5 text-[11px] text-green-600 hover:bg-green-100"
+        className="w-full rounded border border-green-300 bg-green-50 px-3 py-1 text-[11px] text-green-600 hover:bg-green-100"
       >
         ➕ 수동 항목 추가
       </button>
@@ -640,7 +640,7 @@ export default function QuoteItemList({
       <button
         type="button"
         onClick={saveFormSettings}
-        className="w-full rounded border border-blue-300 bg-blue-50 px-3 py-1.5 text-[11px] text-blue-600 hover:bg-blue-100"
+        className="w-full rounded border border-blue-300 bg-blue-50 px-3 py-1 text-[11px] text-blue-600 hover:bg-blue-100"
       >
         💾 현재 양식 저장
       </button>
