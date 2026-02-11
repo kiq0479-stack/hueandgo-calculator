@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import type { QuoteItem as QuoteItemType } from '@/components/calculator/Calculator';
 import type { QuoteTotals, TruncationType } from '@/hooks/useQuote';
 import { calcItemTotal } from '@/hooks/useQuote';
@@ -16,6 +17,12 @@ interface QuoteItemListProps {
   onDiscountChange: (rate: number) => void;
   onTruncationChange: (type: TruncationType) => void;
   onClearAll: () => void;
+}
+
+// 오늘 날짜를 YYYY년 M월 D일 형식으로
+function getTodayFormatted(): string {
+  const today = new Date();
+  return `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
 }
 
 // 숫자를 한글 금액으로 변환
@@ -69,6 +76,16 @@ export default function QuoteItemList({
   onTruncationChange,
   onClearAll,
 }: QuoteItemListProps) {
+  // 날짜/수신/참조 상태
+  const [quoteDate, setQuoteDate] = useState('');
+  const [recipient, setRecipient] = useState('');
+  const [reference, setReference] = useState('');
+
+  // 컴포넌트 마운트 시 오늘 날짜로 초기화
+  useEffect(() => {
+    setQuoteDate(getTodayFormatted());
+  }, []);
+
   const rows = [...items];
   while (rows.length < MAX_ROWS) {
     rows.push(null as unknown as QuoteItemType);
@@ -97,19 +114,43 @@ export default function QuoteItemList({
         
         {/* 날짜/수신/참조 + 사업자정보 테이블 */}
         <div className="flex mx-2 gap-4">
-          {/* 왼쪽: 날짜, 수신, 참조 (밑줄은 글자 왼쪽까지만) */}
+          {/* 왼쪽: 날짜, 수신, 참조 (입력 가능) */}
           <div className="w-[38%]">
             <div className="flex h-6">
               <div className="w-12 flex items-center shrink-0">날 짜 :</div>
-              <div className="flex-1 border-b border-gray-400"></div>
+              <div className="flex-1 border-b border-gray-400">
+                <input
+                  type="text"
+                  value={quoteDate}
+                  onChange={(e) => setQuoteDate(e.target.value)}
+                  className="w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px]"
+                  placeholder="2026년 2월 11일"
+                />
+              </div>
             </div>
             <div className="flex h-6">
               <div className="w-12 flex items-center shrink-0">수 신 :</div>
-              <div className="flex-1 border-b border-gray-400"></div>
+              <div className="flex-1 border-b border-gray-400">
+                <input
+                  type="text"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  className="w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px]"
+                  placeholder="수신자 입력"
+                />
+              </div>
             </div>
             <div className="flex h-6">
               <div className="w-12 flex items-center shrink-0">참 조 :</div>
-              <div className="flex-1 border-b border-gray-400"></div>
+              <div className="flex-1 border-b border-gray-400">
+                <input
+                  type="text"
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  className="w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px]"
+                  placeholder="참조 입력"
+                />
+              </div>
             </div>
             <div className="h-6"></div>
           </div>
