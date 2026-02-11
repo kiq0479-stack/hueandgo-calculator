@@ -39,12 +39,12 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <h1 className="text-lg font-bold text-gray-900">휴앤고 단가계산기</h1>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <h1 className="text-xl font-bold text-gray-900">휴앤고 단가계산기</h1>
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 space-y-6">
+      <main className="mx-auto max-w-7xl px-6 py-8 space-y-8">
         {/* 상단: 계산기 + 견적 항목 (2컬럼) */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* 왼쪽: 계산기 */}
