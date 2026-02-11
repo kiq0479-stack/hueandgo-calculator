@@ -7,6 +7,9 @@ import ExportButtons from '@/components/quote/ExportButtons';
 import useQuote from '@/hooks/useQuote';
 import { TEMPLATES, getDefaultFormData, type QuoteFormData } from '@/lib/quote/templates';
 
+// 수동 입력 행 타입
+type ManualRow = { id: string; name: string; qty: number; price: number };
+
 export default function Home() {
   const {
     items,
@@ -24,6 +27,30 @@ export default function Home() {
 
   // 견적서 폼 상태
   const [formData, setFormData] = useState<QuoteFormData>(getDefaultFormData());
+  
+  // 수동 입력 행 상태 (견적서/거래명세서 공유)
+  const [manualRows, setManualRows] = useState<ManualRow[]>([]);
+  
+  // 수동 행 추가
+  const addManualRow = () => {
+    setManualRows(prev => [...prev, { id: `manual-${Date.now()}`, name: '', qty: 1, price: 0 }]);
+  };
+  
+  // 수동 행 업데이트
+  const updateManualRow = (id: string, field: keyof ManualRow, value: string | number) => {
+    setManualRows(prev => prev.map(row => row.id === id ? { ...row, [field]: value } : row));
+  };
+  
+  // 수동 행 삭제
+  const removeManualRow = (id: string) => {
+    setManualRows(prev => prev.filter(row => row.id !== id));
+  };
+  
+  // 전체 삭제 (API 항목 + 수동 항목)
+  const clearAllWithManual = () => {
+    clearAll();
+    setManualRows([]);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -91,7 +118,11 @@ export default function Home() {
                 onUpdateUnitPrice={updateUnitPrice}
                 onDiscountChange={updateDiscountRate}
                 onTruncationChange={updateTruncation}
-                onClearAll={clearAll}
+                onClearAll={clearAllWithManual}
+                manualRows={manualRows}
+                onAddManualRow={addManualRow}
+                onUpdateManualRow={updateManualRow}
+                onRemoveManualRow={removeManualRow}
               />
             </section>
 
@@ -141,8 +172,12 @@ export default function Home() {
                 onUpdateUnitPrice={updateUnitPrice}
                 onDiscountChange={updateDiscountRate}
                 onTruncationChange={updateTruncation}
-                onClearAll={clearAll}
+                onClearAll={clearAllWithManual}
                 documentType="invoice"
+                manualRows={manualRows}
+                onAddManualRow={addManualRow}
+                onUpdateManualRow={updateManualRow}
+                onRemoveManualRow={removeManualRow}
               />
             </section>
           </div>

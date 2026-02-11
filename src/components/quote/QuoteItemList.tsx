@@ -8,6 +8,9 @@ import DiscountControl from './DiscountControl';
 import { getTemplateById, BRANDIZ, HOTANGGAMTANG } from '@/lib/quote/templates';
 import HotangQuoteForm from './HotangQuoteForm';
 
+// 수동 입력 행 타입
+type ManualRow = { id: string; name: string; qty: number; price: number };
+
 interface QuoteItemListProps {
   items: QuoteItemType[];
   discountRate: number;
@@ -21,6 +24,11 @@ interface QuoteItemListProps {
   onDiscountChange: (rate: number) => void;
   onTruncationChange: (type: TruncationType) => void;
   onClearAll: () => void;
+  // 수동 입력 행 (부모에서 관리)
+  manualRows?: ManualRow[];
+  onAddManualRow?: () => void;
+  onUpdateManualRow?: (id: string, field: keyof ManualRow, value: string | number) => void;
+  onRemoveManualRow?: (id: string) => void;
 }
 
 // 오늘 날짜를 YYYY-MM-DD 형식으로 (input type="date"용)
@@ -104,6 +112,10 @@ export default function QuoteItemList({
   onDiscountChange,
   onTruncationChange,
   onClearAll,
+  manualRows: externalManualRows,
+  onAddManualRow: externalAddManualRow,
+  onUpdateManualRow: externalUpdateManualRow,
+  onRemoveManualRow: externalRemoveManualRow,
 }: QuoteItemListProps) {
   // 현재 선택된 템플릿 정보
   const currentTemplate = templateId === 'hotanggamtang' ? HOTANGGAMTANG : BRANDIZ;
@@ -139,9 +151,14 @@ export default function QuoteItemList({
   // MEMO 상태
   const [memoText, setMemoText] = useState('*배송은 택배시 무료입니다.');
 
-  // 수동 입력 행 상태
-  type ManualRow = { id: string; name: string; qty: number; price: number };
-  const [manualRows, setManualRows] = useState<ManualRow[]>([]);
+  // 수동 입력 행 상태 (외부 props 또는 내부 상태)
+  const [internalManualRows, setInternalManualRows] = useState<ManualRow[]>([]);
+  
+  // 외부 props가 있으면 외부 것 사용, 없으면 내부 상태 사용
+  const manualRows = externalManualRows ?? internalManualRows;
+  const setManualRows = externalManualRows !== undefined 
+    ? () => {} // 외부 관리 시 내부 setter 무시
+    : setInternalManualRows;
 
   // 컴포넌트 마운트 시 저장된 양식 불러오기 + 오늘 날짜 설정
   useEffect(() => {
@@ -193,20 +210,20 @@ export default function QuoteItemList({
     alert('브랜디즈 양식이 저장되었습니다!');
   };
 
-  // 수동 행 추가
-  const addManualRow = () => {
-    setManualRows(prev => [...prev, { id: `manual-${Date.now()}`, name: '', qty: 1, price: 0 }]);
-  };
+  // 수동 행 추가 (외부 또는 내부)
+  const addManualRow = externalAddManualRow ?? (() => {
+    setInternalManualRows(prev => [...prev, { id: `manual-${Date.now()}`, name: '', qty: 1, price: 0 }]);
+  });
 
-  // 수동 행 업데이트
-  const updateManualRow = (id: string, field: keyof ManualRow, value: string | number) => {
-    setManualRows(prev => prev.map(row => row.id === id ? { ...row, [field]: value } : row));
-  };
+  // 수동 행 업데이트 (외부 또는 내부)
+  const updateManualRow = externalUpdateManualRow ?? ((id: string, field: keyof ManualRow, value: string | number) => {
+    setInternalManualRows(prev => prev.map(row => row.id === id ? { ...row, [field]: value } : row));
+  });
 
-  // 수동 행 삭제
-  const removeManualRow = (id: string) => {
-    setManualRows(prev => prev.filter(row => row.id !== id));
-  };
+  // 수동 행 삭제 (외부 또는 내부)
+  const removeManualRow = externalRemoveManualRow ?? ((id: string) => {
+    setInternalManualRows(prev => prev.filter(row => row.id !== id));
+  });
 
   // 수동 행 합계
   const manualTotal = manualRows.reduce((sum, row) => sum + (row.qty * row.price), 0);
@@ -703,7 +720,10 @@ export default function QuoteItemList({
           type="button"
           onClick={() => {
             onClearAll();
-            setManualRows([]);
+            // 외부 관리 시 onClearAll에서 이미 처리됨, 내부 관리 시에만 직접 비움
+            if (!externalManualRows) {
+              setInternalManualRows([]);
+            }
           }}
           className="w-full rounded border border-red-200 px-3 py-1 text-[11px] text-red-500 hover:bg-red-50"
         >
