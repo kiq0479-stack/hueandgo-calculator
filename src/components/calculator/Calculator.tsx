@@ -30,6 +30,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const [variants, setVariants] = useState<Cafe24Variant[]>([]);
   const [additionalProducts, setAdditionalProducts] = useState<Cafe24AdditionalProduct[]>([]);
   const [optionsApiError, setOptionsApiError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<Record<string, unknown> | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [optionAmounts, setOptionAmounts] = useState<Record<string, number>>({});
   const [quantity, setQuantity] = useState(1);
@@ -54,10 +55,13 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
       });
       if (res.ok) {
         const data = await res.json();
+        console.log('[CLIENT DEBUG] API response:', JSON.stringify(data._debug || {}));
+        console.log('[CLIENT DEBUG] additionalProducts:', data.additionalProducts);
         setProductOptions(data.options || []);
         setVariants(data.variants || []);
         setAdditionalProducts(data.additionalProducts || []);
         setOptionsApiError(data.optionsApiError || null);
+        setDebugInfo(data._debug || null);
       } else {
         setProductOptions([]);
         setVariants([]);
@@ -165,8 +169,14 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
 
       {/* DEBUG: 옵션/variants/추가구성상품 개수 표시 */}
       {selectedProduct && !loadingDetail && (
-        <div className="text-xs text-gray-400 bg-yellow-50 p-2 rounded">
-          [DEBUG] options: {productOptions.length}개, variants: {variants.length}개, 추가구성상품: {additionalProducts.length}개
+        <div className="text-xs text-gray-400 bg-yellow-50 p-2 rounded space-y-1">
+          <div>[DEBUG] options: {productOptions.length}개, variants: {variants.length}개, 추가구성상품: {additionalProducts.length}개</div>
+          {debugInfo && (
+            <div className="text-blue-500">
+              [서버] productHasAdditionalproducts: {String(debugInfo.productHasAdditionalproducts)}, 
+              productAdditionalproductsCount: {String(debugInfo.productAdditionalproductsCount)}
+            </div>
+          )}
           {optionsApiError && <div className="text-red-500">Options API 에러: {optionsApiError}</div>}
         </div>
       )}

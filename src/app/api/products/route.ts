@@ -45,7 +45,17 @@ export async function GET(request: NextRequest) {
         console.log('[DEBUG] variants count:', data.variants?.length ?? 'undefined');
         console.log('[DEBUG] additionalProducts count:', data.additionalProducts?.length ?? 'undefined');
         console.log('[DEBUG] additionalProducts sample:', JSON.stringify(data.additionalProducts?.[0] || null));
-        return NextResponse.json(data);
+        // 클라이언트에서 확인할 수 있도록 debug 정보 추가
+        return NextResponse.json({
+          ...data,
+          _debug: {
+            optionsCount: data.options?.length ?? 0,
+            variantsCount: data.variants?.length ?? 0,
+            additionalProductsCount: data.additionalProducts?.length ?? 0,
+            productHasAdditionalproducts: !!data.product?.additionalproducts,
+            productAdditionalproductsCount: data.product?.additionalproducts?.length ?? 0,
+          }
+        });
       } catch (detailError) {
         const msg = detailError instanceof Error ? detailError.message : String(detailError);
         console.error('[ERROR] fetchProductWithDetails failed:', msg);
