@@ -256,7 +256,8 @@ export default function QuoteItemList({
 
                 const itemTotal = calcItemTotal(item);
                 const itemTotalWithVat = Math.round(itemTotal);
-                const displayName = formatProductName(item.product.product_name, item.selectedOption);
+                const optionStr = Object.values(item.selectedOptions || {}).join(' ');
+                const displayName = formatProductName(item.product.product_name, optionStr);
 
                 return (
                   <tr key={item.id} className="group hover:bg-blue-50">
