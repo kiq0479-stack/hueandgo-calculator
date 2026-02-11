@@ -6,6 +6,7 @@ import type { QuoteTotals, TruncationType } from '@/hooks/useQuote';
 import { calcItemTotal } from '@/hooks/useQuote';
 import DiscountControl from './DiscountControl';
 import { getTemplateById, BRANDIZ, HOTANGGAMTANG } from '@/lib/quote/templates';
+import HotangQuoteForm from './HotangQuoteForm';
 
 interface QuoteItemListProps {
   items: QuoteItemType[];
@@ -216,6 +217,17 @@ export default function QuoteItemList({
 
   const previewId = documentType === 'invoice' ? 'invoice-preview' : 'quote-preview';
   const docTitle = documentType === 'invoice' ? '거 래 명 세 서' : '견 적 서';
+
+  // 호탱감탱일 때는 별도 양식 사용
+  if (templateId === 'hotanggamtang') {
+    return (
+      <HotangQuoteForm
+        items={items}
+        totals={totals}
+        documentType={documentType}
+      />
+    );
+  }
 
   return (
     <div className="space-y-3">
