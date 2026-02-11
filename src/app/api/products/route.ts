@@ -3,19 +3,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated, setTokenStore, type TokenData } from '@/lib/cafe24/auth';
 import { fetchProducts, fetchProductWithDetails } from '@/lib/cafe24/products';
-import fs from 'fs';
-import path from 'path';
 
-// 로컬 추가구성상품 매핑 로드
+// 로컬 추가구성상품 매핑 (직접 import - Vercel serverless 호환)
+import addonMappingData from '@/data/addon-mapping.json';
+
+// 로컬 추가구성상품 매핑 반환
 function loadAddonMapping(): Record<string, Array<{ product_code: string; product_name: string; price: number }>> {
-  try {
-    const filePath = path.join(process.cwd(), 'public', 'data', 'addon-mapping.json');
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(fileContent);
-  } catch (err) {
-    console.log('[DEBUG] addon-mapping.json 로드 실패:', err);
-    return {};
-  }
+  return addonMappingData as Record<string, Array<{ product_code: string; product_name: string; price: number }>>;
 }
 
 // 쿠키에서 토큰 복원
