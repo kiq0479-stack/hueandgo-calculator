@@ -125,7 +125,7 @@ export default function QuoteItemList({
   const [stampSize, setStampSize] = useState(40);
 
   // 레이아웃 상태
-  const [leftWidth, setLeftWidth] = useState(32); // 날짜/수신/참조 영역 너비 (%) - 사업자정보 영역 더 넓힘
+  const [leftWidth, setLeftWidth] = useState(30); // 날짜/수신/참조 영역 너비 (%) - 사업자정보 영역 70%
   const [bizLabelWidth, setBizLabelWidth] = useState(55); // 사업자정보 라벨 너비 (px)
   const [colWidths, setColWidths] = useState({
     no: 26,      // No. 열 (px)
@@ -301,48 +301,48 @@ export default function QuoteItemList({
           </div>
           
           {/* 오른쪽: 사업자정보 테이블 */}
-          <div className="border border-black relative" style={{ width: `${100 - leftWidth}%` }}>
+          <div className="border border-black relative text-[10px]" style={{ width: `${100 - leftWidth}%` }}>
             <div className="flex h-6 border-b border-black">
-              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap text-[8px]" style={{ width: `${bizLabelWidth}px` }}>사업자소재지</div>
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap" style={{ width: `${bizLabelWidth}px` }}>사업자소재지</div>
               <div className="flex-1 px-1 flex items-center min-w-0">
                 <input
                   type="text"
                   value={bizAddress}
                   onChange={(e) => setBizAddress(e.target.value)}
-                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[8px]"
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px]"
                 />
               </div>
             </div>
             <div className="flex h-6 border-b border-black">
-              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap text-[9px]" style={{ width: `${bizLabelWidth}px` }}>상호</div>
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap" style={{ width: `${bizLabelWidth}px` }}>상호</div>
               <div className="flex-1 px-1 flex items-center min-w-0">
                 <input
                   type="text"
                   value={bizName}
                   onChange={(e) => setBizName(e.target.value)}
-                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[9px]"
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px]"
                 />
               </div>
             </div>
             <div className="flex h-6 border-b border-black">
-              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap text-[9px]" style={{ width: `${bizLabelWidth}px` }}>대표자성명</div>
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap" style={{ width: `${bizLabelWidth}px` }}>대표자성명</div>
               <div className="flex-1 px-1 flex items-center min-w-0">
                 <input
                   type="text"
                   value={bizCeo}
                   onChange={(e) => setBizCeo(e.target.value)}
-                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[9px]"
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px]"
                 />
               </div>
             </div>
             <div className="flex h-6">
-              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap text-[9px]" style={{ width: `${bizLabelWidth}px` }}>전화번호</div>
+              <div className="px-1 flex items-center bg-gray-50 border-r border-black shrink-0 whitespace-nowrap" style={{ width: `${bizLabelWidth}px` }}>전화번호</div>
               <div className="flex-1 px-1 flex items-center min-w-0">
                 <input
                   type="text"
                   value={bizPhone}
                   onChange={(e) => setBizPhone(e.target.value)}
-                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[9px]"
+                  className="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[10px]"
                 />
               </div>
             </div>
@@ -445,7 +445,7 @@ export default function QuoteItemList({
                           const num = Number(e.target.value.replace(/,/g, ''));
                           if (!isNaN(num)) onUpdateUnitPrice(item.id, Math.max(0, num));
                         }}
-                        className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
+                        className="w-full text-left bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
                       />
                     </td>
                     <td className="border-b border-r border-black px-1 py-1 text-right">
@@ -500,7 +500,7 @@ export default function QuoteItemList({
                           const num = Number(e.target.value.replace(/,/g, ''));
                           if (!isNaN(num)) updateManualRow(row.id, 'price', Math.max(0, num));
                         }}
-                        className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
+                        className="w-full text-left bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
                       />
                     </td>
                     <td className="border-b border-r border-black px-1 py-1 text-right">
