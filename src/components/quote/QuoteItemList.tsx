@@ -663,10 +663,13 @@ export default function QuoteItemList({
       </details>
 
       {/* 전체 삭제 */}
-      {items.length > 0 && (
+      {(items.length > 0 || manualRows.length > 0) && (
         <button
           type="button"
-          onClick={onClearAll}
+          onClick={() => {
+            onClearAll();
+            setManualRows([]);
+          }}
           className="w-full rounded border border-red-200 px-3 py-1 text-[11px] text-red-500 hover:bg-red-50"
         >
           전체 삭제
