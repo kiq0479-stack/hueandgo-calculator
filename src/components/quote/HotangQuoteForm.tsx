@@ -256,7 +256,7 @@ export default function HotangQuoteForm({
                   <td className="border-r border-black px-1">
                     <input type="text" value={bizName} onChange={(e) => setBizName(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
-                  <td className="border-r border-black px-1 bg-gray-50 w-12">대표자</td>
+                  <td className="border-l border-r border-black px-1 bg-gray-50 w-12">대표자</td>
                   <td className="px-1 relative pr-10">
                     <input type="text" value={bizCeo} onChange={(e) => setBizCeo(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                     {/* 호탱감탱 도장 */}
@@ -285,7 +285,7 @@ export default function HotangQuoteForm({
                   <td className="border-r border-black px-1">
                     <input type="text" value={bizType} onChange={(e) => setBizType(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
-                  <td className="border-r border-black px-1 bg-gray-50 w-12">업종</td>
+                  <td className="border-l border-r border-black px-1 bg-gray-50 w-12">업종</td>
                   <td className="px-1">
                     <input type="text" value={bizItem} onChange={(e) => setBizItem(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
