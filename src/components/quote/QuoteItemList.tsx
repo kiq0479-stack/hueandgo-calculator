@@ -5,12 +5,14 @@ import type { QuoteItem as QuoteItemType } from '@/components/calculator/Calcula
 import type { QuoteTotals, TruncationType } from '@/hooks/useQuote';
 import { calcItemTotal } from '@/hooks/useQuote';
 import DiscountControl from './DiscountControl';
+import { getTemplateById, BRANDIZ, HOTANGGAMTANG } from '@/lib/quote/templates';
 
 interface QuoteItemListProps {
   items: QuoteItemType[];
   discountRate: number;
   truncation: TruncationType;
   totals: QuoteTotals;
+  templateId?: 'brandiz' | 'hotanggamtang';
   onRemove: (id: string) => void;
   onUpdateQuantity: (id: string, quantity: number) => void;
   onUpdateUnitPrice: (id: string, unitPrice: number) => void;
@@ -92,6 +94,7 @@ export default function QuoteItemList({
   discountRate,
   truncation,
   totals,
+  templateId = 'brandiz',
   onRemove,
   onUpdateQuantity,
   onUpdateUnitPrice,
@@ -99,15 +102,18 @@ export default function QuoteItemList({
   onTruncationChange,
   onClearAll,
 }: QuoteItemListProps) {
+  // 현재 선택된 템플릿 정보
+  const currentTemplate = templateId === 'hotanggamtang' ? HOTANGGAMTANG : BRANDIZ;
+
   // 날짜/수신/참조 상태
   const [quoteDate, setQuoteDate] = useState('');
   const [recipient, setRecipient] = useState('');
   const [reference, setReference] = useState('');
 
-  // 사업자정보 상태
-  const [bizAddress, setBizAddress] = useState('울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동');
-  const [bizName, setBizName] = useState('주식회사 브랜디즈');
-  const [bizCeo, setBizCeo] = useState('감민주');
+  // 사업자정보 상태 (템플릿에 따라 초기값 설정)
+  const [bizAddress, setBizAddress] = useState(currentTemplate.address);
+  const [bizName, setBizName] = useState(currentTemplate.companyName);
+  const [bizCeo, setBizCeo] = useState(currentTemplate.representative);
   const [bizPhone, setBizPhone] = useState('010-2116-2349');
 
   // 도장 위치/사이즈 상태
@@ -143,10 +149,6 @@ export default function QuoteItemList({
     if (saved) {
       try {
         const settings = JSON.parse(saved);
-        if (settings.bizAddress) setBizAddress(settings.bizAddress);
-        if (settings.bizName) setBizName(settings.bizName);
-        if (settings.bizCeo) setBizCeo(settings.bizCeo);
-        if (settings.bizPhone) setBizPhone(settings.bizPhone);
         if (settings.stampTop !== undefined) setStampTop(settings.stampTop);
         if (settings.stampRight !== undefined) setStampRight(settings.stampRight);
         if (settings.stampSize !== undefined) setStampSize(settings.stampSize);
@@ -159,6 +161,15 @@ export default function QuoteItemList({
       }
     }
   }, []);
+
+  // 템플릿 변경 시 사업자 정보 업데이트
+  useEffect(() => {
+    setBizAddress(currentTemplate.address);
+    setBizName(currentTemplate.companyName);
+    setBizCeo(currentTemplate.representative);
+    // 전화번호는 템플릿에 없으므로 하드코딩
+    setBizPhone(templateId === 'hotanggamtang' ? '010-8764-8950' : '010-2116-2349');
+  }, [templateId, currentTemplate]);
 
   // 양식 저장 함수
   const saveFormSettings = () => {
@@ -204,7 +215,7 @@ export default function QuoteItemList({
   return (
     <div className="space-y-3">
       {/* 엑셀 견적서 양식 그대로 */}
-      <div className="border border-black bg-white text-[11px] leading-tight">
+      <div id="quote-preview" className="border border-black bg-white text-[11px] leading-tight">
         
         {/* Row: No. */}
         <div className="px-2 py-1 text-gray-600">No.</div>

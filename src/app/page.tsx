@@ -87,6 +87,7 @@ export default function Home() {
               discountRate={discountRate}
               truncation={truncation}
               totals={totals}
+              templateId={formData.templateId}
               onRemove={removeItem}
               onUpdateQuantity={updateQuantity}
               onUpdateUnitPrice={updateUnitPrice}

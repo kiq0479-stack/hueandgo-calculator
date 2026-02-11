@@ -28,10 +28,15 @@ export default function ExportButtons({
   const [downloading, setDownloading] = useState<'pdf' | 'excel' | null>(null);
 
   const label = documentType === 'quote' ? '견적서' : '거래명세서';
-  const filePrefix = documentType === 'quote' ? '견적서' : '거래명세서';
-  const templateLabel = formData.templateId === 'brandiz' ? '브랜디즈' : '호탱감탱';
-  const dateStr = formData.date.replace(/-/g, '');
-  const fileName = `${filePrefix}_${templateLabel}_${formData.recipient || '미입력'}_${dateStr}`;
+  const docType = documentType === 'quote' ? '견적서' : '거래명세서';
+  // 날짜 형식: YY.MM.DD
+  const dateParts = formData.date.split('-');
+  const dateStr = dateParts.length === 3 
+    ? `${dateParts[0].slice(2)}.${dateParts[1]}.${dateParts[2]}` 
+    : formData.date.replace(/-/g, '');
+  // 파일명: (휴앤고) 수신명 굿즈 주문제작 견적서_날짜
+  const recipientName = formData.recipient || '미입력';
+  const fileName = `(휴앤고) ${recipientName} 굿즈 주문제작 ${docType}_${dateStr}`;
 
   // PDF 다운로드
   async function handlePdfDownload() {
