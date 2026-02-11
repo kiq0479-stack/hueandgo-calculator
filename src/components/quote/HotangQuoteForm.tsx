@@ -285,7 +285,7 @@ export default function HotangQuoteForm({
                   <td className="border-r border-black px-1">
                     <input type="text" value={bizType} onChange={(e) => setBizType(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
-                  <td className="border-r border-black px-1 bg-gray-50">업종</td>
+                  <td className="border-r border-black px-1 bg-gray-50 w-12">업종</td>
                   <td className="px-1">
                     <input type="text" value={bizItem} onChange={(e) => setBizItem(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
