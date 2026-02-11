@@ -218,15 +218,13 @@ export default function HotangQuoteForm({
               onChange={(e) => setDescLine2(e.target.value)}
               className="mb-1 bg-transparent border-0 focus:outline-none text-[11px] w-full"
             />
-            <div className="mb-2 relative h-6 cursor-pointer" onClick={() => document.getElementById('hotang-date-input')?.click()}>
-              <span className="flex items-center h-full">{formatDateKorean(quoteDate)}</span>
+            <div className="mb-2 flex items-center gap-2">
+              <span>{formatDateKorean(quoteDate)}</span>
               <input
-                id="hotang-date-input"
                 type="date"
                 value={quoteDate}
                 onChange={(e) => setQuoteDate(e.target.value)}
-                className="absolute inset-0 w-full h-full cursor-pointer"
-                style={{ opacity: 0 }}
+                className="border border-gray-300 rounded px-1 py-0.5 text-[10px] cursor-pointer"
               />
             </div>
             <div className="flex items-center">
