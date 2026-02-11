@@ -54,8 +54,6 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
         setVariants(data.variants || []);
         setAdditionalProducts(data.additionalProducts || []);
         setOptionsApiError(data.optionsApiError || null);
-        // 디버그: product 키 확인
-        console.log('[DEBUG] productKeys:', data.productKeys);
       } else {
         setProductOptions([]);
         setVariants([]);

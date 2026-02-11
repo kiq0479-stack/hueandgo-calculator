@@ -106,6 +106,28 @@ export async function fetchProductVariants(
   return data.variants;
 }
 
+// 추가구성상품 조회
+export async function fetchAdditionalProducts(
+  productNo: number,
+): Promise<any[]> {
+  const headers = await getAuthHeaders();
+  const BASE_URL = getBaseUrl();
+
+  const url = `${BASE_URL}/products/${productNo}/additionalproducts`;
+  console.log('[DEBUG] Fetching additionalproducts from:', url);
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.log('[DEBUG] additionalproducts API error:', response.status, error);
+    throw new Error(`추가구성상품 조회 실패 (${productNo}): ${response.status} ${error}`);
+  }
+
+  const data = await response.json();
+  console.log('[DEBUG] additionalproducts response:', JSON.stringify(data).slice(0, 500));
+  return data.additionalproducts || [];
+}
+
 // 상품 옵션 정의 조회
 export async function fetchProductOptions(
   productNo: number,
@@ -169,13 +191,14 @@ function extractOptionsFromVariants(variants: Cafe24Variant[]): Cafe24ProductOpt
   return options;
 }
 
-// 상품 상세 + 옵션 + 품목을 한 번에 가져오기
+// 상품 상세 + 옵션 + 품목 + 추가구성상품을 한 번에 가져오기
 export async function fetchProductWithDetails(productNo: number) {
   // Promise.allSettled로 실패해도 다른 것들은 가져오기
-  const [productResult, optionsResult, variantsResult] = await Promise.allSettled([
+  const [productResult, optionsResult, variantsResult, additionalResult] = await Promise.allSettled([
     fetchProductDetail(productNo),
     fetchProductOptions(productNo),
     fetchProductVariants(productNo),
+    fetchAdditionalProducts(productNo),
   ]);
 
   const product = productResult.status === 'fulfilled' ? productResult.value : null;
@@ -200,14 +223,12 @@ export async function fetchProductWithDetails(productNo: number) {
     console.log('[DEBUG] fetchProductOptions failed:', optionsApiError);
   }
 
-  // 추가구성상품 (Cafe24 API 응답 구조 확인)
-  console.log('[DEBUG] product keys:', product ? Object.keys(product) : 'null');
-  const additionalProducts = product?.additionalproducts || [];
+  // 추가구성상품 (별도 API에서 가져옴)
+  const additionalProducts = additionalResult.status === 'fulfilled' ? (additionalResult.value || []) : [];
   console.log('[DEBUG] additionalProducts count:', additionalProducts.length);
-  console.log('[DEBUG] additionalProducts raw:', JSON.stringify(product?.additionalproducts)?.slice(0, 500));
+  if (additionalResult.status === 'rejected') {
+    console.log('[DEBUG] fetchAdditionalProducts failed:', additionalResult.reason?.message || additionalResult.reason);
+  }
 
-  // 디버그: product의 모든 키
-  const productKeys = product ? Object.keys(product) : [];
-  
-  return { product, options, variants, additionalProducts, optionsApiError, productKeys };
+  return { product, options, variants, additionalProducts, optionsApiError };
 }
