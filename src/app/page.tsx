@@ -37,6 +37,12 @@ export default function Home() {
   const [reference, setReference] = useState('');
   const [memoText, setMemoText] = useState('*배송은 택배시 무료입니다.');
   
+  // 사업자정보 공유 상태
+  const [bizAddress, setBizAddress] = useState('울산광역시 울주군 웅촌면 웅촌로 575-7, 에이동');
+  const [bizName, setBizName] = useState('주식회사 브랜디즈');
+  const [bizCeo, setBizCeo] = useState('감민주');
+  const [bizPhone, setBizPhone] = useState('010-2116-2349');
+  
   // 수동 행 추가
   const addManualRow = () => {
     setManualRows(prev => [...prev, { id: `manual-${Date.now()}`, name: '', qty: 1, price: 0 }]);
@@ -138,6 +144,14 @@ export default function Home() {
                 onReferenceChange={setReference}
                 memoText={memoText}
                 onMemoTextChange={setMemoText}
+                bizAddress={bizAddress}
+                onBizAddressChange={setBizAddress}
+                bizName={bizName}
+                onBizNameChange={setBizName}
+                bizCeo={bizCeo}
+                onBizCeoChange={setBizCeo}
+                bizPhone={bizPhone}
+                onBizPhoneChange={setBizPhone}
               />
             </section>
 
@@ -202,6 +216,14 @@ export default function Home() {
                 onReferenceChange={setReference}
                 memoText={memoText}
                 onMemoTextChange={setMemoText}
+                bizAddress={bizAddress}
+                onBizAddressChange={setBizAddress}
+                bizName={bizName}
+                onBizNameChange={setBizName}
+                bizCeo={bizCeo}
+                onBizCeoChange={setBizCeo}
+                bizPhone={bizPhone}
+                onBizPhoneChange={setBizPhone}
               />
             </section>
           </div>

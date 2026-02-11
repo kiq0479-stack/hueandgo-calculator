@@ -38,6 +38,15 @@ interface QuoteItemListProps {
   onReferenceChange?: (value: string) => void;
   memoText?: string;
   onMemoTextChange?: (value: string) => void;
+  // 사업자정보 동기화
+  bizAddress?: string;
+  onBizAddressChange?: (value: string) => void;
+  bizName?: string;
+  onBizNameChange?: (value: string) => void;
+  bizCeo?: string;
+  onBizCeoChange?: (value: string) => void;
+  bizPhone?: string;
+  onBizPhoneChange?: (value: string) => void;
 }
 
 // 오늘 날짜를 YYYY-MM-DD 형식으로 (input type="date"용)
@@ -134,6 +143,15 @@ export default function QuoteItemList({
   onReferenceChange,
   memoText: externalMemoText,
   onMemoTextChange,
+  // 사업자정보
+  bizAddress: externalBizAddress,
+  onBizAddressChange,
+  bizName: externalBizName,
+  onBizNameChange,
+  bizCeo: externalBizCeo,
+  onBizCeoChange,
+  bizPhone: externalBizPhone,
+  onBizPhoneChange,
 }: QuoteItemListProps) {
   // 현재 선택된 템플릿 정보
   const currentTemplate = templateId === 'hotanggamtang' ? HOTANGGAMTANG : BRANDIZ;
@@ -154,11 +172,21 @@ export default function QuoteItemList({
   const memoText = externalMemoText ?? internalMemoText;
   const setMemoText = onMemoTextChange ?? setInternalMemoText;
 
-  // 사업자정보 상태 (템플릿에 따라 초기값 설정)
-  const [bizAddress, setBizAddress] = useState(currentTemplate.address);
-  const [bizName, setBizName] = useState(currentTemplate.companyName);
-  const [bizCeo, setBizCeo] = useState(currentTemplate.representative);
-  const [bizPhone, setBizPhone] = useState('010-2116-2349');
+  // 사업자정보 상태 (외부 또는 내부)
+  const [internalBizAddress, setInternalBizAddress] = useState(currentTemplate.address);
+  const [internalBizName, setInternalBizName] = useState(currentTemplate.companyName);
+  const [internalBizCeo, setInternalBizCeo] = useState(currentTemplate.representative);
+  const [internalBizPhone, setInternalBizPhone] = useState('010-2116-2349');
+  
+  // 외부 props 우선 사용
+  const bizAddress = externalBizAddress ?? internalBizAddress;
+  const setBizAddress = onBizAddressChange ?? setInternalBizAddress;
+  const bizName = externalBizName ?? internalBizName;
+  const setBizName = onBizNameChange ?? setInternalBizName;
+  const bizCeo = externalBizCeo ?? internalBizCeo;
+  const setBizCeo = onBizCeoChange ?? setInternalBizCeo;
+  const bizPhone = externalBizPhone ?? internalBizPhone;
+  const setBizPhone = onBizPhoneChange ?? setInternalBizPhone;
 
   // 도장 위치/사이즈 상태
   const [stampTop, setStampTop] = useState(18);
@@ -212,14 +240,13 @@ export default function QuoteItemList({
     }
   }, [externalQuoteDate, externalMemoText]);
 
-  // 템플릿 변경 시 사업자 정보 업데이트
+  // 템플릿 변경 시 사업자 정보 업데이트 (외부 관리 아닐 때만)
   useEffect(() => {
-    setBizAddress(currentTemplate.address);
-    setBizName(currentTemplate.companyName);
-    setBizCeo(currentTemplate.representative);
-    // 전화번호는 템플릿에 없으므로 하드코딩
-    setBizPhone(templateId === 'hotanggamtang' ? '010-8764-8950' : '010-2116-2349');
-  }, [templateId, currentTemplate]);
+    if (!externalBizAddress) setInternalBizAddress(currentTemplate.address);
+    if (!externalBizName) setInternalBizName(currentTemplate.companyName);
+    if (!externalBizCeo) setInternalBizCeo(currentTemplate.representative);
+    if (!externalBizPhone) setInternalBizPhone(templateId === 'hotanggamtang' ? '010-8764-8950' : '010-2116-2349');
+  }, [templateId, currentTemplate, externalBizAddress, externalBizName, externalBizCeo, externalBizPhone]);
 
   // 양식 저장 함수
   const saveFormSettings = () => {
