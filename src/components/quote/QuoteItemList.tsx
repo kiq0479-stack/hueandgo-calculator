@@ -278,6 +278,7 @@ export default function QuoteItemList({
               <div className="w-12 flex items-center shrink-0">수 신 :</div>
               <div className="flex-1 border-b border-black flex items-center">
                 <input
+                  id="quote-recipient"
                   type="text"
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}

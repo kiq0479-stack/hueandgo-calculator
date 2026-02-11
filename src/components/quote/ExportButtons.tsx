@@ -32,18 +32,12 @@ export default function ExportButtons({
   
   // DOM에서 수신처와 날짜 값 읽기 (QuoteItemList에서 관리하는 상태)
   function getRecipientFromDOM(): string {
-    const previewEl = document.getElementById(previewElementId);
-    if (!previewEl) return '미입력';
-    // 수신 입력 필드 찾기
-    const inputs = previewEl.querySelectorAll('input[type="text"]');
-    for (const input of inputs) {
-      const inp = input as HTMLInputElement;
-      // 수신 필드는 보통 첫 번째 또는 두 번째 text input
-      if (inp.value && inp.value.length > 0 && !inp.value.includes('@')) {
-        return inp.value;
-      }
+    // id="quote-recipient"로 직접 찾기
+    const recipientInput = document.getElementById('quote-recipient') as HTMLInputElement;
+    if (recipientInput && recipientInput.value && recipientInput.value.trim().length > 0) {
+      return recipientInput.value.trim();
     }
-    return '미입력';
+    return '';
   }
   
   function getDateFromDOM(): string {

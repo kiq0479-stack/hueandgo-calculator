@@ -230,6 +230,7 @@ export default function HotangQuoteForm({
             </div>
             <div className="flex items-center">
               <input
+                id="quote-recipient"
                 type="text"
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
