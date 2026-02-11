@@ -2,13 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import type { QuoteItem as QuoteItemType } from '@/components/calculator/Calculator';
-import type { QuoteTotals } from '@/hooks/useQuote';
+import type { QuoteTotals, TruncationType } from '@/hooks/useQuote';
 import { HOTANGGAMTANG } from '@/lib/quote/templates';
+import DiscountControl from './DiscountControl';
 
 interface HotangQuoteFormProps {
   items: QuoteItemType[];
   totals: QuoteTotals;
   documentType?: 'quote' | 'invoice';
+  discountRate?: number;
+  truncation?: TruncationType;
+  onDiscountChange?: (rate: number) => void;
+  onTruncationChange?: (type: TruncationType) => void;
+  onClearAll?: () => void;
+  onUpdateQuantity?: (id: string, quantity: number) => void;
+  onUpdateUnitPrice?: (id: string, unitPrice: number) => void;
 }
 
 // 오늘 날짜를 YYYY-MM-DD 형식으로
@@ -79,6 +87,13 @@ export default function HotangQuoteForm({
   items,
   totals,
   documentType = 'quote',
+  discountRate = 0,
+  truncation = 'none',
+  onDiscountChange,
+  onTruncationChange,
+  onClearAll,
+  onUpdateQuantity,
+  onUpdateUnitPrice,
 }: HotangQuoteFormProps) {
   // 날짜/수신처
   const [quoteDate, setQuoteDate] = useState('');
@@ -100,13 +115,58 @@ export default function HotangQuoteForm({
   // 메모
   const [memoText, setMemoText] = useState('*배송은 택배시 무료입니다.');
   
+  // 도장 설정
+  const [stampTop, setStampTop] = useState(0);
+  const [stampRight, setStampRight] = useState(0);
+  const [stampSize, setStampSize] = useState(40);
+  
+  // 레이아웃 설정
+  const [leftWidth, setLeftWidth] = useState(45);
+  
   // 수동 입력 행 상태
   type ManualRow = { id: string; name: string; qty: number; price: number };
   const [manualRows, setManualRows] = useState<ManualRow[]>([]);
 
   useEffect(() => {
     setQuoteDate(getTodayISO());
+    
+    // localStorage에서 저장된 설정 불러오기
+    const saved = localStorage.getItem('hotangFormSettings');
+    if (saved) {
+      try {
+        const settings = JSON.parse(saved);
+        if (settings.descLine1) setDescLine1(settings.descLine1);
+        if (settings.descLine2) setDescLine2(settings.descLine2);
+        if (settings.bizRegNo) setBizRegNo(settings.bizRegNo);
+        if (settings.bizName) setBizName(settings.bizName);
+        if (settings.bizCeo) setBizCeo(settings.bizCeo);
+        if (settings.bizAddress) setBizAddress(settings.bizAddress);
+        if (settings.bizType) setBizType(settings.bizType);
+        if (settings.bizItem) setBizItem(settings.bizItem);
+        if (settings.bizPhone) setBizPhone(settings.bizPhone);
+        if (settings.memoText) setMemoText(settings.memoText);
+        if (settings.stampTop !== undefined) setStampTop(settings.stampTop);
+        if (settings.stampRight !== undefined) setStampRight(settings.stampRight);
+        if (settings.stampSize !== undefined) setStampSize(settings.stampSize);
+        if (settings.leftWidth !== undefined) setLeftWidth(settings.leftWidth);
+      } catch (e) {
+        console.error('Failed to load saved settings:', e);
+      }
+    }
   }, []);
+
+  // 양식 저장 함수
+  const saveFormSettings = () => {
+    const settings = {
+      descLine1, descLine2,
+      bizRegNo, bizName, bizCeo, bizAddress, bizType, bizItem, bizPhone,
+      memoText,
+      stampTop, stampRight, stampSize,
+      leftWidth,
+    };
+    localStorage.setItem('hotangFormSettings', JSON.stringify(settings));
+    alert('호탱감탱 양식이 저장되었습니다!');
+  };
 
   const previewId = documentType === 'invoice' ? 'invoice-preview' : 'quote-preview';
   const docTitle = documentType === 'invoice' ? '거 래 명 세 서' : '견 적 서';
@@ -115,10 +175,18 @@ export default function HotangQuoteForm({
   const manualTotal = manualRows.reduce((sum, row) => sum + (row.qty * row.price), 0);
   const grandTotal = Math.round(totals.grandTotal) + manualTotal;
 
-  // 수동 행 추가
+  // 수동 행 추가/삭제
   const addManualRow = () => {
     if (items.length + manualRows.length >= MAX_ROWS) return;
     setManualRows(prev => [...prev, { id: crypto.randomUUID(), name: '', qty: 1, price: 0 }]);
+  };
+
+  const removeManualRow = (id: string) => {
+    setManualRows(prev => prev.filter(r => r.id !== id));
+  };
+
+  const updateManualRow = (id: string, field: keyof ManualRow, value: string | number) => {
+    setManualRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
 
   return (
@@ -136,8 +204,8 @@ export default function HotangQuoteForm({
         
         {/* 설명 + 사업자정보 영역 */}
         <div className="flex border-b border-black">
-          {/* 왼쪽: 설명 텍스트 (모두 수정 가능) */}
-          <div className="w-[45%] p-2 flex flex-col justify-center">
+          {/* 왼쪽: 설명 텍스트 */}
+          <div className="p-2 flex flex-col justify-center" style={{ width: `${leftWidth}%` }}>
             <input
               type="text"
               value={descLine1}
@@ -160,100 +228,70 @@ export default function HotangQuoteForm({
               />
             </div>
             <div className="flex items-center">
-              <span>㈜</span>
               <input
                 type="text"
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                className="flex-1 mx-1 border-b border-black bg-transparent focus:outline-none text-[11px]"
+                className="flex-1 mr-1 border-b border-black bg-transparent focus:outline-none text-[11px]"
                 placeholder="수신처 입력"
               />
               <span>귀하</span>
             </div>
           </div>
           
-          {/* 오른쪽: 사업자정보 테이블 (모두 수정 가능) */}
-          <div className="w-[55%] border-l border-black">
+          {/* 오른쪽: 사업자정보 테이블 */}
+          <div className="border-l border-black" style={{ width: `${100 - leftWidth}%` }}>
             <table className="w-full text-[10px]">
               <tbody>
                 <tr className="border-b border-black">
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50 w-16">사업자 번호</td>
                   <td className="px-1 py-0.5" colSpan={3}>
-                    <input
-                      type="text"
-                      value={bizRegNo}
-                      onChange={(e) => setBizRegNo(e.target.value)}
-                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
-                    />
+                    <input type="text" value={bizRegNo} onChange={(e) => setBizRegNo(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
                 <tr className="border-b border-black">
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50">상호</td>
                   <td className="border-r border-black px-1 py-0.5">
-                    <input
-                      type="text"
-                      value={bizName}
-                      onChange={(e) => setBizName(e.target.value)}
-                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
-                    />
+                    <input type="text" value={bizName} onChange={(e) => setBizName(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50 w-12">대표자</td>
                   <td className="px-1 py-0.5 relative pr-10">
-                    <input
-                      type="text"
-                      value={bizCeo}
-                      onChange={(e) => setBizCeo(e.target.value)}
-                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
-                    />
-                    {/* 도장 - 브랜디즈 도장 재사용 (빨간 원형) */}
+                    <input type="text" value={bizCeo} onChange={(e) => setBizCeo(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
+                    {/* 도장 */}
                     <img 
                       src="/stamp-brandiz.png" 
                       alt="도장" 
-                      className="absolute top-0 right-0 w-10 h-10 object-contain"
-                      style={{ transform: 'translate(20%, -30%)' }}
+                      className="absolute object-contain"
+                      style={{
+                        top: `${stampTop}px`,
+                        right: `${stampRight}px`,
+                        width: `${stampSize}px`,
+                        height: `${stampSize}px`,
+                        transform: 'translate(50%, -50%)',
+                      }}
                     />
                   </td>
                 </tr>
                 <tr className="border-b border-black">
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50">소재지</td>
                   <td className="px-1 py-0.5" colSpan={3}>
-                    <input
-                      type="text"
-                      value={bizAddress}
-                      onChange={(e) => setBizAddress(e.target.value)}
-                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
-                    />
+                    <input type="text" value={bizAddress} onChange={(e) => setBizAddress(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
                 <tr className="border-b border-black">
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50">업태</td>
                   <td className="border-r border-black px-1 py-0.5">
-                    <input
-                      type="text"
-                      value={bizType}
-                      onChange={(e) => setBizType(e.target.value)}
-                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
-                    />
+                    <input type="text" value={bizType} onChange={(e) => setBizType(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50">업종</td>
                   <td className="px-1 py-0.5">
-                    <input
-                      type="text"
-                      value={bizItem}
-                      onChange={(e) => setBizItem(e.target.value)}
-                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
-                    />
+                    <input type="text" value={bizItem} onChange={(e) => setBizItem(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
                 <tr>
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50">전화번호</td>
                   <td className="px-1 py-0.5" colSpan={3}>
-                    <input
-                      type="text"
-                      value={bizPhone}
-                      onChange={(e) => setBizPhone(e.target.value)}
-                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
-                    />
+                    <input type="text" value={bizPhone} onChange={(e) => setBizPhone(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
               </tbody>
@@ -280,7 +318,7 @@ export default function HotangQuoteForm({
           </table>
         </div>
         
-        {/* 품목 테이블 - 호탱감탱 양식: No, 수량, 규격, 품명, 단가, 견적가, 비고 */}
+        {/* 품목 테이블 */}
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-black">
@@ -294,84 +332,113 @@ export default function HotangQuoteForm({
             </tr>
           </thead>
           <tbody>
-            {Array.from({ length: MAX_ROWS }).map((_, idx) => {
+            {/* API 아이템 */}
+            {items.map((item, idx) => {
               const rowNum = idx + 1;
-              const item = items[idx];
-              const manualIdx = idx - items.length;
-              const manual = manualIdx >= 0 ? manualRows[manualIdx] : null;
+              const optionStr = Object.values(item.selectedOptions || {}).join(' ');
+              const displayName = formatProductName(item.product.product_name, optionStr);
+              const itemTotal = item.unitPrice * item.quantity;
               
-              if (item) {
-                const optionStr = Object.values(item.selectedOptions || {}).join(' ');
-                const displayName = formatProductName(item.product.product_name, optionStr);
-                const itemTotal = item.unitPrice * item.quantity;
-                
-                return (
-                  <tr key={`item-${idx}`} className="border-b border-black">
-                    <td className="border-r border-black px-1 py-1 text-center">{rowNum}</td>
-                    <td className="border-r border-black px-1 py-1 text-center">{item.quantity.toLocaleString()}</td>
-                    <td className="border-r border-black px-1 py-1 text-center">EA</td>
-                    <td className="border-r border-black px-1 py-1">{displayName}</td>
-                    <td className="border-r border-black px-1 py-1 text-right">{item.unitPrice.toLocaleString()}</td>
-                    <td className="border-r border-black px-1 py-1 text-right">{itemTotal.toLocaleString()}</td>
-                    <td className="px-1 py-1"></td>
-                  </tr>
-                );
-              } else if (manual) {
-                const manualItemTotal = manual.qty * manual.price;
-                return (
-                  <tr key={`manual-${manual.id}`} className="border-b border-black">
-                    <td className="border-r border-black px-1 py-1 text-center">{rowNum}</td>
-                    <td className="border-r border-black px-1 py-1">
-                      <input
-                        type="number"
-                        value={manual.qty || ''}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value) || 0;
-                          setManualRows(prev => prev.map(r => r.id === manual.id ? { ...r, qty: val } : r));
-                        }}
-                        className="w-full bg-transparent border-0 focus:outline-none text-center text-[11px]"
-                      />
-                    </td>
-                    <td className="border-r border-black px-1 py-1 text-center">EA</td>
-                    <td className="border-r border-black px-1 py-1">
+              return (
+                <tr key={`item-${idx}`} className="border-b border-black group hover:bg-blue-50">
+                  <td className="border-r border-black px-1 py-1 text-center">{rowNum}</td>
+                  <td className="border-r border-black px-1 py-1 text-center">
+                    <input
+                      type="text"
+                      value={item.quantity.toLocaleString()}
+                      onChange={(e) => {
+                        const num = Number(e.target.value.replace(/,/g, ''));
+                        if (!isNaN(num) && onUpdateQuantity) onUpdateQuantity(item.id, Math.max(1, num));
+                      }}
+                      className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
+                    />
+                  </td>
+                  <td className="border-r border-black px-1 py-1 text-center">EA</td>
+                  <td className="border-r border-black px-1 py-1">{displayName}</td>
+                  <td className="border-r border-black px-1 py-1">
+                    <input
+                      type="text"
+                      value={item.unitPrice.toLocaleString()}
+                      onChange={(e) => {
+                        const num = Number(e.target.value.replace(/,/g, ''));
+                        if (!isNaN(num) && onUpdateUnitPrice) onUpdateUnitPrice(item.id, Math.max(0, num));
+                      }}
+                      className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
+                    />
+                  </td>
+                  <td className="border-r border-black px-1 py-1 text-right">{itemTotal.toLocaleString()}</td>
+                  <td className="px-1 py-1"></td>
+                </tr>
+              );
+            })}
+            {/* 수동 입력 행 */}
+            {manualRows.map((row, index) => {
+              const rowNum = items.length + index + 1;
+              const rowTotal = row.qty * row.price;
+              return (
+                <tr key={row.id} className="border-b border-black group hover:bg-green-50">
+                  <td className="border-r border-black px-1 py-1 text-center">{rowNum}</td>
+                  <td className="border-r border-black px-1 py-1">
+                    <input
+                      type="text"
+                      value={row.qty.toLocaleString()}
+                      onChange={(e) => {
+                        const num = Number(e.target.value.replace(/,/g, ''));
+                        if (!isNaN(num)) updateManualRow(row.id, 'qty', Math.max(1, num));
+                      }}
+                      className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
+                    />
+                  </td>
+                  <td className="border-r border-black px-1 py-1 text-center">EA</td>
+                  <td className="border-r border-black px-1 py-1">
+                    <div className="flex items-center gap-1">
                       <input
                         type="text"
-                        value={manual.name}
-                        onChange={(e) => {
-                          setManualRows(prev => prev.map(r => r.id === manual.id ? { ...r, name: e.target.value } : r));
-                        }}
-                        className="w-full bg-transparent border-0 focus:outline-none text-[11px]"
+                        value={row.name}
+                        onChange={(e) => updateManualRow(row.id, 'name', e.target.value)}
                         placeholder="품명 입력"
+                        className="flex-1 bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
                       />
-                    </td>
-                    <td className="border-r border-black px-1 py-1">
-                      <input
-                        type="number"
-                        value={manual.price || ''}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value) || 0;
-                          setManualRows(prev => prev.map(r => r.id === manual.id ? { ...r, price: val } : r));
-                        }}
-                        className="w-full bg-transparent border-0 focus:outline-none text-right text-[11px]"
-                      />
-                    </td>
-                    <td className="border-r border-black px-1 py-1 text-right">{manualItemTotal > 0 ? manualItemTotal.toLocaleString() : '-'}</td>
-                    <td className="px-1 py-1"></td>
-                  </tr>
-                );
-              } else {
-                return (
-                  <tr key={`empty-${idx}`} className="border-b border-black">
-                    <td className="border-r border-black px-1 py-1 text-center">{rowNum}</td>
-                    <td className="border-r border-black px-1 py-1"></td>
-                    <td className="border-r border-black px-1 py-1 text-center">{rowNum <= 6 ? 'EA' : ''}</td>
-                    <td className="border-r border-black px-1 py-1"></td>
-                    <td className="border-r border-black px-1 py-1"></td>
-                    <td className="border-r border-black px-1 py-1 text-center">-</td>
-                    <td className="px-1 py-1"></td>
-                  </tr>
-                );
-              }
+                      <button
+                        type="button"
+                        onClick={() => removeManualRow(row.id)}
+                        className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </td>
+                  <td className="border-r border-black px-1 py-1">
+                    <input
+                      type="text"
+                      value={row.price.toLocaleString()}
+                      onChange={(e) => {
+                        const num = Number(e.target.value.replace(/,/g, ''));
+                        if (!isNaN(num)) updateManualRow(row.id, 'price', Math.max(0, num));
+                      }}
+                      className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
+                    />
+                  </td>
+                  <td className="border-r border-black px-1 py-1 text-right">{rowTotal > 0 ? rowTotal.toLocaleString() : '-'}</td>
+                  <td className="px-1 py-1"></td>
+                </tr>
+              );
+            })}
+            {/* 빈 행 */}
+            {Array.from({ length: Math.max(0, MAX_ROWS - items.length - manualRows.length) }).map((_, idx) => {
+              const rowNum = items.length + manualRows.length + idx + 1;
+              const showEA = rowNum <= 6;
+              return (
+                <tr key={`empty-${idx}`} className="border-b border-black">
+                  <td className="border-r border-black px-1 py-1 text-center">{rowNum}</td>
+                  <td className="border-r border-black px-1 py-1"></td>
+                  <td className="border-r border-black px-1 py-1 text-center">{showEA ? 'EA' : ''}</td>
+                  <td className="border-r border-black px-1 py-1"></td>
+                  <td className="border-r border-black px-1 py-1"></td>
+                  <td className="border-r border-black px-1 py-1 text-center">-</td>
+                  <td className="px-1 py-1"></td>
+                </tr>
+              );
             })}
             {/* 합계 행 */}
             <tr className="bg-gray-100">
@@ -393,15 +460,87 @@ export default function HotangQuoteForm({
           />
         </div>
       </div>
-      
-      {/* 수동 행 추가 버튼 */}
-      {items.length + manualRows.length < MAX_ROWS && (
+
+      {/* 도장 설정 */}
+      <details className="text-[11px]">
+        <summary className="cursor-pointer text-gray-500 hover:text-gray-700">▸ 도장 설정</summary>
+        <div className="mt-2 p-2 bg-gray-50 rounded space-y-2">
+          <div className="flex items-center gap-2">
+            <label className="w-20">위치 (상하)</label>
+            <input type="range" min={-20} max={40} value={stampTop} onChange={(e) => setStampTop(Number(e.target.value))} className="flex-1" />
+            <span className="w-10 text-right">{stampTop}px</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="w-20">위치 (좌우)</label>
+            <input type="range" min={-20} max={40} value={stampRight} onChange={(e) => setStampRight(Number(e.target.value))} className="flex-1" />
+            <span className="w-10 text-right">{stampRight}px</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="w-20">크기</label>
+            <input type="range" min={20} max={80} value={stampSize} onChange={(e) => setStampSize(Number(e.target.value))} className="flex-1" />
+            <span className="w-10 text-right">{stampSize}px</span>
+          </div>
+        </div>
+      </details>
+
+      {/* 레이아웃 설정 */}
+      <details className="text-[11px]">
+        <summary className="cursor-pointer text-gray-500 hover:text-gray-700">▸ 레이아웃 설정</summary>
+        <div className="mt-2 p-2 bg-gray-50 rounded space-y-2">
+          <div className="flex items-center gap-2">
+            <label className="w-28">왼쪽 영역 너비</label>
+            <input type="range" min={30} max={55} value={leftWidth} onChange={(e) => setLeftWidth(Number(e.target.value))} className="flex-1" />
+            <span className="w-10 text-right">{leftWidth}%</span>
+          </div>
+        </div>
+      </details>
+
+      {/* 수동 입력 추가 버튼 */}
+      <button
+        type="button"
+        onClick={addManualRow}
+        className="w-full rounded border border-green-300 bg-green-50 px-3 py-1 text-[11px] text-green-600 hover:bg-green-100"
+      >
+        ➕ 수동 항목 추가
+      </button>
+
+      {/* 양식 저장 버튼 */}
+      <button
+        type="button"
+        onClick={saveFormSettings}
+        className="w-full rounded border border-blue-300 bg-blue-50 px-3 py-1 text-[11px] text-blue-600 hover:bg-blue-100"
+      >
+        💾 현재 양식 저장
+      </button>
+
+      {/* 할인/절삭 설정 */}
+      {onDiscountChange && onTruncationChange && (
+        <details className="text-[11px]">
+          <summary className="cursor-pointer text-gray-500 hover:text-gray-700">▸ 할인/절삭 설정</summary>
+          <div className="mt-2 p-2 bg-gray-50 rounded">
+            <DiscountControl
+              discountRate={discountRate}
+              onDiscountChange={onDiscountChange}
+              truncation={truncation}
+              onTruncationChange={onTruncationChange}
+              subtotal={totals.subtotal}
+              truncationAmount={totals.truncationAmount}
+            />
+          </div>
+        </details>
+      )}
+
+      {/* 전체 삭제 */}
+      {(items.length > 0 || manualRows.length > 0) && onClearAll && (
         <button
           type="button"
-          onClick={addManualRow}
-          className="text-xs text-blue-600 hover:underline"
+          onClick={() => {
+            onClearAll();
+            setManualRows([]);
+          }}
+          className="w-full rounded border border-red-200 px-3 py-1 text-[11px] text-red-500 hover:bg-red-50"
         >
-          ➕ 수동 항목 추가
+          전체 삭제
         </button>
       )}
     </div>

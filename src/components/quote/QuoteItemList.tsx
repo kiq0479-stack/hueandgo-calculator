@@ -225,6 +225,13 @@ export default function QuoteItemList({
         items={items}
         totals={totals}
         documentType={documentType}
+        discountRate={discountRate}
+        truncation={truncation}
+        onDiscountChange={onDiscountChange}
+        onTruncationChange={onTruncationChange}
+        onClearAll={onClearAll}
+        onUpdateQuantity={onUpdateQuantity}
+        onUpdateUnitPrice={onUpdateUnitPrice}
       />
     );
   }
