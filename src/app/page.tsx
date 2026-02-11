@@ -31,6 +31,12 @@ export default function Home() {
   // 수동 입력 행 상태 (견적서/거래명세서 공유)
   const [manualRows, setManualRows] = useState<ManualRow[]>([]);
   
+  // 공유 폼 상태 (견적서/거래명세서 동기화)
+  const [quoteDate, setQuoteDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [recipient, setRecipient] = useState('');
+  const [reference, setReference] = useState('');
+  const [memoText, setMemoText] = useState('*배송은 택배시 무료입니다.');
+  
   // 수동 행 추가
   const addManualRow = () => {
     setManualRows(prev => [...prev, { id: `manual-${Date.now()}`, name: '', qty: 1, price: 0 }]);
@@ -124,6 +130,14 @@ export default function Home() {
                 onAddManualRow={addManualRow}
                 onUpdateManualRow={updateManualRow}
                 onRemoveManualRow={removeManualRow}
+                quoteDate={quoteDate}
+                onQuoteDateChange={setQuoteDate}
+                recipient={recipient}
+                onRecipientChange={setRecipient}
+                reference={reference}
+                onReferenceChange={setReference}
+                memoText={memoText}
+                onMemoTextChange={setMemoText}
               />
             </section>
 
@@ -180,6 +194,14 @@ export default function Home() {
                 onAddManualRow={addManualRow}
                 onUpdateManualRow={updateManualRow}
                 onRemoveManualRow={removeManualRow}
+                quoteDate={quoteDate}
+                onQuoteDateChange={setQuoteDate}
+                recipient={recipient}
+                onRecipientChange={setRecipient}
+                reference={reference}
+                onReferenceChange={setReference}
+                memoText={memoText}
+                onMemoTextChange={setMemoText}
               />
             </section>
           </div>

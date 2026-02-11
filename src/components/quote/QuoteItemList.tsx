@@ -29,6 +29,15 @@ interface QuoteItemListProps {
   onAddManualRow?: () => void;
   onUpdateManualRow?: (id: string, field: keyof ManualRow, value: string | number) => void;
   onRemoveManualRow?: (id: string) => void;
+  // 공유 폼 상태 (견적서/거래명세서 동기화)
+  quoteDate?: string;
+  onQuoteDateChange?: (date: string) => void;
+  recipient?: string;
+  onRecipientChange?: (value: string) => void;
+  reference?: string;
+  onReferenceChange?: (value: string) => void;
+  memoText?: string;
+  onMemoTextChange?: (value: string) => void;
 }
 
 // 오늘 날짜를 YYYY-MM-DD 형식으로 (input type="date"용)
@@ -116,14 +125,34 @@ export default function QuoteItemList({
   onAddManualRow: externalAddManualRow,
   onUpdateManualRow: externalUpdateManualRow,
   onRemoveManualRow: externalRemoveManualRow,
+  // 공유 폼 상태
+  quoteDate: externalQuoteDate,
+  onQuoteDateChange,
+  recipient: externalRecipient,
+  onRecipientChange,
+  reference: externalReference,
+  onReferenceChange,
+  memoText: externalMemoText,
+  onMemoTextChange,
 }: QuoteItemListProps) {
   // 현재 선택된 템플릿 정보
   const currentTemplate = templateId === 'hotanggamtang' ? HOTANGGAMTANG : BRANDIZ;
 
-  // 날짜/수신/참조 상태
-  const [quoteDate, setQuoteDate] = useState('');
-  const [recipient, setRecipient] = useState('');
-  const [reference, setReference] = useState('');
+  // 날짜/수신/참조 상태 (외부 또는 내부)
+  const [internalQuoteDate, setInternalQuoteDate] = useState('');
+  const [internalRecipient, setInternalRecipient] = useState('');
+  const [internalReference, setInternalReference] = useState('');
+  const [internalMemoText, setInternalMemoText] = useState('*배송은 택배시 무료입니다.');
+  
+  // 외부 props 우선 사용
+  const quoteDate = externalQuoteDate ?? internalQuoteDate;
+  const setQuoteDate = onQuoteDateChange ?? setInternalQuoteDate;
+  const recipient = externalRecipient ?? internalRecipient;
+  const setRecipient = onRecipientChange ?? setInternalRecipient;
+  const reference = externalReference ?? internalReference;
+  const setReference = onReferenceChange ?? setInternalReference;
+  const memoText = externalMemoText ?? internalMemoText;
+  const setMemoText = onMemoTextChange ?? setInternalMemoText;
 
   // 사업자정보 상태 (템플릿에 따라 초기값 설정)
   const [bizAddress, setBizAddress] = useState(currentTemplate.address);
@@ -148,9 +177,6 @@ export default function QuoteItemList({
     note: 28,    // 비고 열 (px)
   });
 
-  // MEMO 상태
-  const [memoText, setMemoText] = useState('*배송은 택배시 무료입니다.');
-
   // 수동 입력 행 상태 (외부 props 또는 내부 상태)
   const [internalManualRows, setInternalManualRows] = useState<ManualRow[]>([]);
   
@@ -162,7 +188,10 @@ export default function QuoteItemList({
 
   // 컴포넌트 마운트 시 저장된 양식 불러오기 + 오늘 날짜 설정
   useEffect(() => {
-    setQuoteDate(getTodayISO());
+    // 외부 관리가 아닐 때만 내부 상태 초기화
+    if (!externalQuoteDate) {
+      setInternalQuoteDate(getTodayISO());
+    }
     
     // localStorage에서 저장된 양식 불러오기
     const saved = localStorage.getItem('quoteFormSettings');
@@ -175,12 +204,13 @@ export default function QuoteItemList({
         if (settings.leftWidth !== undefined) setLeftWidth(settings.leftWidth);
         if (settings.bizLabelWidth !== undefined) setBizLabelWidth(settings.bizLabelWidth);
         if (settings.colWidths) setColWidths(settings.colWidths);
-        if (settings.memoText) setMemoText(settings.memoText);
+        // 외부 관리가 아닐 때만 메모 불러오기
+        if (settings.memoText && !externalMemoText) setInternalMemoText(settings.memoText);
       } catch (e) {
         console.error('Failed to load saved settings:', e);
       }
     }
-  }, []);
+  }, [externalQuoteDate, externalMemoText]);
 
   // 템플릿 변경 시 사업자 정보 업데이트
   useEffect(() => {
