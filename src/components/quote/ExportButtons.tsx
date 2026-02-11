@@ -66,14 +66,18 @@ export default function ExportButtons({
     
     // 호탱감탱 vs 브랜디즈 파일명 형식 다름
     if (formData.templateId === 'hotanggamtang') {
-      // 호탱감탱 - 수신처 주문제작 굿즈 견적서_날짜
+      // 호탱감탱 날짜 형식: YYYYMMDD
+      const hotangDate = dateParts.length === 3 
+        ? `${dateParts[0]}${dateParts[1]}${dateParts[2]}` 
+        : dateValue.replace(/-/g, '');
+      // 호탱감탱 - 수신처 주문제작 굿즈 견적서 - 20260211
       if (recipientPart) {
-        return `호탱감탱 - ${recipientPart} 주문제작 굿즈 ${docType}_${dateStr}`;
+        return `호탱감탱 - ${recipientPart} 주문제작 굿즈 ${docType} - ${hotangDate}`;
       } else {
-        return `호탱감탱 - 주문제작 굿즈 ${docType}_${dateStr}`;
+        return `호탱감탱 - 주문제작 굿즈 ${docType} - ${hotangDate}`;
       }
     } else {
-      // (휴앤고) 수신처 굿즈 주문제작 견적서_날짜
+      // (휴앤고) 수신처 굿즈 주문제작 견적서_26.02.11
       if (recipientPart) {
         return `(휴앤고) ${recipientPart} 굿즈 주문제작 ${docType}_${dateStr}`;
       } else {
