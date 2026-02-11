@@ -241,21 +241,21 @@ export default function HotangQuoteForm({
           
           {/* 오른쪽: 사업자정보 테이블 */}
           <div className="border-l border-black" style={{ width: `${100 - leftWidth}%` }}>
-            <table className="w-full text-[10px]">
+            <table className="w-full text-[10px] border-collapse">
               <tbody>
-                <tr className="border-b border-black">
-                  <td className="border-r border-black px-1 py-0.5 bg-gray-50 w-16">사업자 번호</td>
-                  <td className="px-1 py-0.5" colSpan={3}>
+                <tr className="border-b border-black h-6">
+                  <td className="border-r border-black px-1 bg-gray-50 w-16">사업자 번호</td>
+                  <td className="px-1" colSpan={3}>
                     <input type="text" value={bizRegNo} onChange={(e) => setBizRegNo(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
-                <tr className="border-b border-black">
-                  <td className="border-r border-black px-1 py-0.5 bg-gray-50">상호</td>
-                  <td className="border-r border-black px-1 py-0.5">
+                <tr className="border-b border-black h-6">
+                  <td className="border-r border-black px-1 bg-gray-50">상호</td>
+                  <td className="border-r border-black px-1">
                     <input type="text" value={bizName} onChange={(e) => setBizName(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
-                  <td className="border-r border-black px-1 py-0.5 bg-gray-50 w-12">대표자</td>
-                  <td className="px-1 py-0.5 relative pr-10">
+                  <td className="border-r border-black px-1 bg-gray-50 w-12">대표자</td>
+                  <td className="px-1 relative pr-10">
                     <input type="text" value={bizCeo} onChange={(e) => setBizCeo(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                     {/* 호탱감탱 도장 */}
                     <img 
@@ -272,25 +272,25 @@ export default function HotangQuoteForm({
                     />
                   </td>
                 </tr>
-                <tr className="border-b border-black">
-                  <td className="border-r border-black px-1 py-0.5 bg-gray-50">소재지</td>
-                  <td className="px-1 py-0.5" colSpan={3}>
+                <tr className="border-b border-black h-6">
+                  <td className="border-r border-black px-1 bg-gray-50">소재지</td>
+                  <td className="px-1" colSpan={3}>
                     <input type="text" value={bizAddress} onChange={(e) => setBizAddress(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
-                <tr className="border-b border-black">
-                  <td className="border-r border-black px-1 py-0.5 bg-gray-50">업태</td>
-                  <td className="border-r border-black px-1 py-0.5">
+                <tr className="border-b border-black h-6">
+                  <td className="border-r border-black px-1 bg-gray-50">업태</td>
+                  <td className="border-r border-black px-1">
                     <input type="text" value={bizType} onChange={(e) => setBizType(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
-                  <td className="border-r border-black px-1 py-0.5 bg-gray-50">업종</td>
-                  <td className="px-1 py-0.5">
+                  <td className="border-r border-black px-1 bg-gray-50">업종</td>
+                  <td className="px-1">
                     <input type="text" value={bizItem} onChange={(e) => setBizItem(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
-                <tr>
-                  <td className="border-r border-black px-1 py-0.5 bg-gray-50">전화번호</td>
-                  <td className="px-1 py-0.5" colSpan={3}>
+                <tr className="h-6">
+                  <td className="border-r border-black px-1 bg-gray-50">전화번호</td>
+                  <td className="px-1" colSpan={3}>
                     <input type="text" value={bizPhone} onChange={(e) => setBizPhone(e.target.value)} className="w-full bg-transparent border-0 focus:outline-none text-[10px]" />
                   </td>
                 </tr>
