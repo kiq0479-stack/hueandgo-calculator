@@ -51,6 +51,31 @@ function formatDateKorean(dateStr: string): string {
   return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
 }
 
+// 금액 재계산 (거래명세서용)
+function recalcTotals(
+  totals: QuoteTotals,
+  vatIncluded: boolean
+): { supplyAmount: number; vat: number; grandTotal: number } {
+  if (vatIncluded) {
+    return {
+      supplyAmount: totals.supplyAmount,
+      vat: totals.vat,
+      grandTotal: totals.grandTotal,
+    };
+  } else {
+    const afterDiscount = totals.subtotal - totals.discountAmount;
+    const supplyAmount = afterDiscount;
+    const vat = Math.round(supplyAmount * 0.1);
+    const grandTotal = supplyAmount + vat;
+    return { supplyAmount, vat, grandTotal };
+  }
+}
+
+// 할인 적용 단가 계산 (거래명세서용)
+function getItemDisplayPrice(unitPrice: number, discountRate: number): number {
+  return Math.round(unitPrice * (1 - discountRate / 100));
+}
+
 // 품명 정리
 function formatProductName(name: string, selectedOption?: string): string {
   let formatted = name.replace(/\s*\(파트너\s*전용\)\s*/gi, '').trim();
