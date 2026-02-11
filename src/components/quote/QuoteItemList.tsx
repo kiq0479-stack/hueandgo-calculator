@@ -560,7 +560,7 @@ export default function QuoteItemList({
       {/* 도장 위치/사이즈 설정 */}
       <details className="text-[11px]">
         <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
-          ▸ 도장 설정
+          도장 설정
         </summary>
         <div className="mt-2 p-2 bg-gray-50 rounded space-y-2">
           <div className="flex items-center gap-2">
@@ -605,7 +605,7 @@ export default function QuoteItemList({
       {/* 레이아웃 설정 */}
       <details className="text-[11px]">
         <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
-          ▸ 레이아웃 설정
+          레이아웃 설정
         </summary>
         <div className="mt-2 p-2 bg-gray-50 rounded space-y-2">
           <div className="font-medium text-gray-600 mb-1">영역 너비</div>
@@ -684,7 +684,7 @@ export default function QuoteItemList({
       {/* 할인/절삭 설정 */}
       <details className="text-[11px]">
         <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
-          ▸ 할인/절삭 설정
+          할인/절삭 설정
         </summary>
         <div className="mt-2 p-2 bg-gray-50 rounded">
           <DiscountControl

@@ -463,7 +463,7 @@ export default function HotangQuoteForm({
 
       {/* 도장 설정 */}
       <details className="text-[11px]">
-        <summary className="cursor-pointer text-gray-500 hover:text-gray-700">▸ 도장 설정</summary>
+        <summary className="cursor-pointer text-gray-500 hover:text-gray-700">도장 설정</summary>
         <div className="mt-2 p-2 bg-gray-50 rounded space-y-2">
           <div className="flex items-center gap-2">
             <label className="w-20">위치 (상하)</label>
@@ -485,7 +485,7 @@ export default function HotangQuoteForm({
 
       {/* 레이아웃 설정 */}
       <details className="text-[11px]">
-        <summary className="cursor-pointer text-gray-500 hover:text-gray-700">▸ 레이아웃 설정</summary>
+        <summary className="cursor-pointer text-gray-500 hover:text-gray-700">레이아웃 설정</summary>
         <div className="mt-2 p-2 bg-gray-50 rounded space-y-2">
           <div className="flex items-center gap-2">
             <label className="w-28">왼쪽 영역 너비</label>
@@ -516,7 +516,7 @@ export default function HotangQuoteForm({
       {/* 할인/절삭 설정 */}
       {onDiscountChange && onTruncationChange && (
         <details className="text-[11px]">
-          <summary className="cursor-pointer text-gray-500 hover:text-gray-700">▸ 할인/절삭 설정</summary>
+          <summary className="cursor-pointer text-gray-500 hover:text-gray-700">할인/절삭 설정</summary>
           <div className="mt-2 p-2 bg-gray-50 rounded">
             <DiscountControl
               discountRate={discountRate}
