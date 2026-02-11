@@ -96,9 +96,9 @@ export default function QuoteItemList({
         <div className="h-2"></div>
         
         {/* 날짜/수신/참조 + 사업자정보 테이블 */}
-        <div className="flex mx-2">
-          {/* 왼쪽: 날짜, 수신, 참조 (밑줄이 사업자정보까지 연장) */}
-          <div className="flex-1">
+        <div className="flex mx-2 gap-4">
+          {/* 왼쪽: 날짜, 수신, 참조 (밑줄은 글자 왼쪽까지만) */}
+          <div className="w-[38%]">
             <div className="flex h-6">
               <div className="w-12 flex items-center shrink-0">날 짜 :</div>
               <div className="flex-1 border-b border-gray-400"></div>
@@ -114,7 +114,7 @@ export default function QuoteItemList({
             <div className="h-6"></div>
           </div>
           
-          {/* 오른쪽: 사업자정보 테이블 */}
+          {/* 오른쪽: 사업자정보 테이블 (왼쪽과 gap으로 떨어짐) */}
           <div className="w-[55%] shrink-0 border border-gray-400 text-[10px]">
             <div className="flex h-6 border-b border-gray-300">
               <div className="w-[70px] px-1 flex items-center bg-gray-50 border-r border-gray-300 shrink-0">사업자소재지</div>
