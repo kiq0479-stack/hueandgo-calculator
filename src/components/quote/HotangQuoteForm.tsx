@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { QuoteItem as QuoteItemType } from '@/components/calculator/Calculator';
-import type { QuoteTotals, TruncationType } from '@/hooks/useQuote';
+import type { QuoteTotals } from '@/hooks/useQuote';
 import { HOTANGGAMTANG } from '@/lib/quote/templates';
 
 interface HotangQuoteFormProps {
@@ -80,8 +80,25 @@ export default function HotangQuoteForm({
   totals,
   documentType = 'quote',
 }: HotangQuoteFormProps) {
+  // 날짜/수신처
   const [quoteDate, setQuoteDate] = useState('');
   const [recipient, setRecipient] = useState('');
+  
+  // 설명 텍스트 (수정 가능)
+  const [descLine1, setDescLine1] = useState('아크릴 굿즈 주문제작에 대하여');
+  const [descLine2, setDescLine2] = useState('아래와 같이 견적합니다.');
+  
+  // 사업자정보 (수정 가능)
+  const [bizRegNo, setBizRegNo] = useState(HOTANGGAMTANG.registrationNumber);
+  const [bizName, setBizName] = useState(HOTANGGAMTANG.companyName);
+  const [bizCeo, setBizCeo] = useState(HOTANGGAMTANG.representative);
+  const [bizAddress, setBizAddress] = useState(HOTANGGAMTANG.address);
+  const [bizType, setBizType] = useState(HOTANGGAMTANG.businessType);
+  const [bizItem, setBizItem] = useState(HOTANGGAMTANG.businessItem);
+  const [bizPhone, setBizPhone] = useState('010-6255-7392');
+  
+  // 메모
+  const [memoText, setMemoText] = useState('*배송은 택배시 무료입니다.');
   
   // 수동 입력 행 상태
   type ManualRow = { id: string; name: string; qty: number; price: number };
@@ -119,11 +136,29 @@ export default function HotangQuoteForm({
         
         {/* 설명 + 사업자정보 영역 */}
         <div className="flex border-b border-black">
-          {/* 왼쪽: 설명 텍스트 */}
+          {/* 왼쪽: 설명 텍스트 (모두 수정 가능) */}
           <div className="w-[45%] p-2 flex flex-col justify-center">
-            <p className="mb-1">아크릴 굿즈 주문제작에 대하여</p>
-            <p className="mb-1">아래와 같이 견적합니다.</p>
-            <p className="mb-2">{formatDateKorean(quoteDate)}</p>
+            <input
+              type="text"
+              value={descLine1}
+              onChange={(e) => setDescLine1(e.target.value)}
+              className="mb-1 bg-transparent border-0 focus:outline-none text-[11px] w-full"
+            />
+            <input
+              type="text"
+              value={descLine2}
+              onChange={(e) => setDescLine2(e.target.value)}
+              className="mb-1 bg-transparent border-0 focus:outline-none text-[11px] w-full"
+            />
+            <div className="mb-2 relative">
+              <span className="pointer-events-none">{formatDateKorean(quoteDate)}</span>
+              <input
+                type="date"
+                value={quoteDate}
+                onChange={(e) => setQuoteDate(e.target.value)}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+            </div>
             <div className="flex items-center">
               <span>㈜</span>
               <input
@@ -137,41 +172,89 @@ export default function HotangQuoteForm({
             </div>
           </div>
           
-          {/* 오른쪽: 사업자정보 테이블 */}
+          {/* 오른쪽: 사업자정보 테이블 (모두 수정 가능) */}
           <div className="w-[55%] border-l border-black">
             <table className="w-full text-[10px]">
               <tbody>
                 <tr className="border-b border-black">
-                  <td className="border-r border-black px-1 py-0.5 bg-gray-50 w-20">사업자 번호</td>
-                  <td className="px-1 py-0.5" colSpan={3}>{HOTANGGAMTANG.registrationNumber}</td>
+                  <td className="border-r border-black px-1 py-0.5 bg-gray-50 w-16">사업자 번호</td>
+                  <td className="px-1 py-0.5" colSpan={3}>
+                    <input
+                      type="text"
+                      value={bizRegNo}
+                      onChange={(e) => setBizRegNo(e.target.value)}
+                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
+                    />
+                  </td>
                 </tr>
                 <tr className="border-b border-black">
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50">상호</td>
-                  <td className="border-r border-black px-1 py-0.5">{HOTANGGAMTANG.companyName}</td>
-                  <td className="border-r border-black px-1 py-0.5 bg-gray-50 w-14">대표자</td>
-                  <td className="px-1 py-0.5 relative">
-                    {HOTANGGAMTANG.representative}
-                    {/* 도장 */}
+                  <td className="border-r border-black px-1 py-0.5">
+                    <input
+                      type="text"
+                      value={bizName}
+                      onChange={(e) => setBizName(e.target.value)}
+                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
+                    />
+                  </td>
+                  <td className="border-r border-black px-1 py-0.5 bg-gray-50 w-12">대표자</td>
+                  <td className="px-1 py-0.5 relative pr-10">
+                    <input
+                      type="text"
+                      value={bizCeo}
+                      onChange={(e) => setBizCeo(e.target.value)}
+                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
+                    />
+                    {/* 도장 - 브랜디즈 도장 재사용 (빨간 원형) */}
                     <img 
-                      src="/stamp-hotang.png" 
-                      alt="호탱감탱 도장" 
-                      className="absolute -top-1 -right-1 w-8 h-8"
+                      src="/stamp-brandiz.png" 
+                      alt="도장" 
+                      className="absolute top-0 right-0 w-10 h-10 object-contain"
+                      style={{ transform: 'translate(20%, -30%)' }}
                     />
                   </td>
                 </tr>
                 <tr className="border-b border-black">
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50">소재지</td>
-                  <td className="px-1 py-0.5" colSpan={3}>{HOTANGGAMTANG.address}</td>
+                  <td className="px-1 py-0.5" colSpan={3}>
+                    <input
+                      type="text"
+                      value={bizAddress}
+                      onChange={(e) => setBizAddress(e.target.value)}
+                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
+                    />
+                  </td>
                 </tr>
                 <tr className="border-b border-black">
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50">업태</td>
-                  <td className="border-r border-black px-1 py-0.5">{HOTANGGAMTANG.businessType}</td>
+                  <td className="border-r border-black px-1 py-0.5">
+                    <input
+                      type="text"
+                      value={bizType}
+                      onChange={(e) => setBizType(e.target.value)}
+                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
+                    />
+                  </td>
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50">업종</td>
-                  <td className="px-1 py-0.5">{HOTANGGAMTANG.businessItem}</td>
+                  <td className="px-1 py-0.5">
+                    <input
+                      type="text"
+                      value={bizItem}
+                      onChange={(e) => setBizItem(e.target.value)}
+                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
+                    />
+                  </td>
                 </tr>
                 <tr>
                   <td className="border-r border-black px-1 py-0.5 bg-gray-50">전화번호</td>
-                  <td className="px-1 py-0.5" colSpan={3}>010-8764-8950</td>
+                  <td className="px-1 py-0.5" colSpan={3}>
+                    <input
+                      type="text"
+                      value={bizPhone}
+                      onChange={(e) => setBizPhone(e.target.value)}
+                      className="w-full bg-transparent border-0 focus:outline-none text-[10px]"
+                    />
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -184,7 +267,7 @@ export default function HotangQuoteForm({
             <tbody>
               <tr>
                 <td className="border-r border-black px-2 py-1 bg-gray-50 w-20 text-center">
-                  합계금액<br/><span className="text-[9px]">(공급가액)</span>
+                  합계금액<br/><span className="text-[9px]">(공급가액+부가세)</span>
                 </td>
                 <td className="px-2 py-1 text-center font-medium">
                   {numberToKorean(grandTotal)} 원정
@@ -303,9 +386,10 @@ export default function HotangQuoteForm({
         <div className="border-t border-black p-2">
           <p className="font-medium">[MEMO]</p>
           <textarea
+            value={memoText}
+            onChange={(e) => setMemoText(e.target.value)}
             className="w-full bg-transparent border-0 focus:outline-none text-[11px] resize-none"
             rows={2}
-            defaultValue="*배송은 택배시 무료입니다."
           />
         </div>
       </div>
