@@ -97,9 +97,28 @@ export async function downloadQuoteExcel({
   const template = formData.templateId === 'hotanggamtang' ? HOTANGGAMTANG : BRANDIZ;
   const grandTotal = Math.round(totals.grandTotal);
   const phone = formData.templateId === 'hotanggamtang' ? '010-6255-7392' : '010-2116-2349';
+  const stampUrl = formData.templateId === 'hotanggamtang' ? '/stamp-hotang.png' : '/stamp-brandiz.png';
 
   const workbook = new ExcelJS.Workbook();
   const ws = workbook.addWorksheet('견적서');
+  
+  // 도장 이미지 로드
+  let stampImageId: number | null = null;
+  try {
+    const response = await fetch(stampUrl);
+    const blob = await response.blob();
+    const base64 = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+    stampImageId = workbook.addImage({
+      base64: base64.split(',')[1],
+      extension: 'png',
+    });
+  } catch (e) {
+    console.warn('도장 이미지 로드 실패:', e);
+  }
 
   // 열 너비 설정 (A~H)
   // A: No/날짜라벨, B: 품명/날짜값, C: 규격, D: 수량/사업자라벨, E: 단가/사업자값, F: 견적가, G: 비고
@@ -117,7 +136,7 @@ export async function downloadQuoteExcel({
 
   // Row 1: No.
   ws.getCell(`A${row}`).value = 'No.';
-  ws.getCell(`A${row}`).font = { size: 9, color: { argb: 'FF666666' } };
+  ws.getCell(`A${row}`).font = { size: 9 }; // 검정색 통일
   row += 2;
 
   // Row 3: 견적서 제목
@@ -196,6 +215,14 @@ export async function downloadQuoteExcel({
   ws.getCell(`E${row}`).border = thinBorder;
   ws.getCell(`E${row}`).font = { size: 9 };
   ws.getCell(`E${row}`).alignment = { vertical: 'middle' };
+  
+  // 도장 이미지 추가 (대표자성명 옆)
+  if (stampImageId !== null) {
+    ws.addImage(stampImageId, {
+      tl: { col: 6.2, row: 5.5 }, // G열, 6행 근처
+      ext: { width: 45, height: 45 },
+    });
+  }
   row += 2;
 
   // 아래와 같이 견적합니다
@@ -204,12 +231,15 @@ export async function downloadQuoteExcel({
   ws.getCell(`A${row}`).font = { size: 10 };
   row += 2;
 
-  // 합계금액 테이블
+  // 합계금액 테이블 - 행 높이 설정
+  ws.getRow(row).height = 18;
+  ws.getRow(row + 1).height = 18;
+  
   ws.mergeCells(`A${row}:A${row + 1}`);
   ws.getCell(`A${row}`).value = '합계금액\n(부가세 포함)';
   ws.getCell(`A${row}`).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
   ws.getCell(`A${row}`).border = thinBorder;
-  ws.getCell(`A${row}`).font = { size: 9 };
+  ws.getCell(`A${row}`).font = { size: 8 };
   
   ws.mergeCells(`B${row}:D${row + 1}`);
   ws.getCell(`B${row}`).value = `${numberToKorean(grandTotal)} 원정`;
@@ -249,23 +279,48 @@ export async function downloadQuoteExcel({
       const displayName = formatProductName(item.product.product_name, optionStr);
       const itemTotal = item.unitPrice * item.quantity;
       
-      const values = [
-        rowNum,
-        displayName,
-        'EA',
-        item.quantity.toLocaleString(),
-        item.unitPrice.toLocaleString(),
-        itemTotal.toLocaleString(),
-        ''
-      ];
-      values.forEach((v, idx) => {
-        const cell = dataRow.getCell(idx + 1);
-        cell.value = v;
-        cell.border = thinBorder;
-        cell.font = { size: 9 };
-        if (idx === 0 || idx === 2 || idx === 3) cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        if (idx === 4 || idx === 5) cell.alignment = { horizontal: 'right', vertical: 'middle' };
-      });
+      // No.
+      dataRow.getCell(1).value = rowNum;
+      dataRow.getCell(1).border = thinBorder;
+      dataRow.getCell(1).font = { size: 9 };
+      dataRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+      
+      // 품명
+      dataRow.getCell(2).value = displayName;
+      dataRow.getCell(2).border = thinBorder;
+      dataRow.getCell(2).font = { size: 9 };
+      
+      // 규격
+      dataRow.getCell(3).value = 'EA';
+      dataRow.getCell(3).border = thinBorder;
+      dataRow.getCell(3).font = { size: 9 };
+      dataRow.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+      
+      // 수량 (숫자 형식)
+      dataRow.getCell(4).value = item.quantity;
+      dataRow.getCell(4).border = thinBorder;
+      dataRow.getCell(4).font = { size: 9 };
+      dataRow.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
+      dataRow.getCell(4).numFmt = '#,##0';
+      
+      // 단가 (숫자 형식)
+      dataRow.getCell(5).value = item.unitPrice;
+      dataRow.getCell(5).border = thinBorder;
+      dataRow.getCell(5).font = { size: 9 };
+      dataRow.getCell(5).alignment = { horizontal: 'left', vertical: 'middle' };
+      dataRow.getCell(5).numFmt = '#,##0';
+      
+      // 견적가 (숫자 형식)
+      dataRow.getCell(6).value = itemTotal;
+      dataRow.getCell(6).border = thinBorder;
+      dataRow.getCell(6).font = { size: 9 };
+      dataRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
+      dataRow.getCell(6).numFmt = '#,##0';
+      
+      // 비고
+      dataRow.getCell(7).value = '';
+      dataRow.getCell(7).border = thinBorder;
+      dataRow.getCell(7).font = { size: 9 };
     } else {
       const values = [rowNum, '', rowNum <= 6 ? 'EA' : '', '', '', '-', ''];
       values.forEach((v, idx) => {
@@ -287,10 +342,12 @@ export async function downloadQuoteExcel({
   sumRow.getCell(1).border = thinBorder;
   sumRow.getCell(1).fill = headerFill;
   sumRow.getCell(1).font = { bold: true, size: 9 };
-  sumRow.getCell(6).value = grandTotal > 0 ? grandTotal.toLocaleString() : '-';
+  // 합계 숫자 형식
+  sumRow.getCell(6).value = grandTotal > 0 ? grandTotal : '-';
   sumRow.getCell(6).border = thinBorder;
   sumRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
   sumRow.getCell(6).font = { bold: true, size: 9 };
+  if (grandTotal > 0) sumRow.getCell(6).numFmt = '#,##0';
   sumRow.getCell(7).value = '';
   sumRow.getCell(7).border = thinBorder;
   row += 2;
