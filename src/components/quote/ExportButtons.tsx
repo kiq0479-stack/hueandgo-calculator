@@ -87,10 +87,10 @@ export default function ExportButtons({
       const fileName = generateFileName();
       if (documentType === 'quote') {
         const { downloadQuoteExcel } = await import('@/lib/excel/generator');
-        downloadQuoteExcel({ items, totals, formData, fileName });
+        await downloadQuoteExcel({ items, totals, formData, fileName });
       } else {
         const { downloadInvoiceExcel } = await import('@/lib/excel/generator');
-        downloadInvoiceExcel({ items, totals, formData, fileName });
+        await downloadInvoiceExcel({ items, totals, formData, fileName });
       }
     } catch (err) {
       console.error('엑셀 다운로드 실패:', err);
