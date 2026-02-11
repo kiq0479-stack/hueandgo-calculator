@@ -238,14 +238,15 @@ export default function QuoteItemList({
             <div className="flex h-6">
               <div className="w-12 flex items-center shrink-0">날 짜 :</div>
               <div className="flex-1 border-b border-black relative">
-                <span className="absolute inset-0 flex items-center px-1 text-[11px] pointer-events-none">
+                <span className="absolute inset-0 flex items-center px-1 text-[11px] pointer-events-none z-0">
                   {formatDateKorean(quoteDate)}
                 </span>
                 <input
                   type="date"
                   value={quoteDate}
                   onChange={(e) => setQuoteDate(e.target.value)}
-                  className="w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px] opacity-0 cursor-pointer"
+                  className="absolute inset-0 w-full h-full px-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-[11px] cursor-pointer z-10"
+                  style={{ color: 'transparent' }}
                 />
               </div>
             </div>
