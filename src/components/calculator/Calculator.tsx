@@ -237,7 +237,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
       )}
 
       {/* Cafe24 추가구성상품 (API에서 가져온 것) */}
-      {selectedProduct && !loadingDetail && additionalProducts.length > 0 && (
+      {!loadingDetail && additionalProducts.length > 0 && (
         <Cafe24AddonSelector
           additionalProducts={additionalProducts}
           selectedAddons={cafe24Addons}
@@ -285,13 +285,14 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                 <button
                   type="button"
                   onClick={() => {
+                    // 메인상품만 삭제, 추가구성상품은 유지
                     setSelectedProduct(null);
                     setSelectedOptions({});
                     setOptionAmounts({});
                     setQuantity(1);
                     setProductOptions([]);
                     setVariants([]);
-                    setAdditionalProducts([]);
+                    // additionalProducts와 cafe24Addons는 유지
                   }}
                   className="text-gray-400 hover:text-red-500"
                 >
