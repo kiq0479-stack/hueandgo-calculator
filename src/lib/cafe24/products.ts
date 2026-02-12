@@ -105,23 +105,39 @@ export async function fetchProductDetail(
   return data.product;
 }
 
-// 상품 품목(Variant) 목록 조회
+// 상품 품목(Variant) 목록 조회 (페이징으로 전체 가져오기)
 export async function fetchProductVariants(
   productNo: number,
 ): Promise<Cafe24Variant[]> {
   const headers = await getAuthHeaders();
   const BASE_URL = getBaseUrl();
 
-  const url = `${BASE_URL}/products/${productNo}/variants`;
-  const response = await fetch(url, { headers });
+  const allVariants: Cafe24Variant[] = [];
+  let offset = 0;
+  const limit = 100;
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`품목 조회 실패 (${productNo}): ${response.status} ${error}`);
+  while (true) {
+    const url = `${BASE_URL}/products/${productNo}/variants?limit=${limit}&offset=${offset}`;
+    const response = await fetch(url, { headers });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`품목 조회 실패 (${productNo}): ${response.status} ${error}`);
+    }
+
+    const data: Cafe24VariantsResponse = await response.json();
+    const variants = data.variants || [];
+    allVariants.push(...variants);
+
+    // 더 이상 데이터 없으면 종료
+    if (variants.length < limit) break;
+    offset += limit;
+
+    // 안전장치: 최대 1000개
+    if (offset >= 1000) break;
   }
 
-  const data: Cafe24VariantsResponse = await response.json();
-  return data.variants;
+  return allVariants;
 }
 
 // 추가구성상품 조회
