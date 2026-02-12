@@ -262,7 +262,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                 )}
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex items-center border border-gray-300 rounded">
+                <div className="flex items-center border border-gray-300 rounded w-[100px] justify-center">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -270,7 +270,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                   >
                     −
                   </button>
-                  <span className="px-3 py-1 text-sm min-w-[40px] text-center">{quantity}</span>
+                  <span className="px-2 py-1 text-sm w-[36px] text-center">{quantity}</span>
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
@@ -279,9 +279,24 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                     +
                   </button>
                 </div>
-                <span className="text-sm font-medium w-24 text-right">
+                <span className="text-sm font-medium w-20 text-right">
                   {(unitPrice * quantity).toLocaleString()}원
                 </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedProduct(null);
+                    setSelectedOptions({});
+                    setOptionAmounts({});
+                    setQuantity(1);
+                    setProductOptions([]);
+                    setVariants([]);
+                    setAdditionalProducts([]);
+                  }}
+                  className="text-gray-400 hover:text-red-500"
+                >
+                  ×
+                </button>
               </div>
             </div>
           )}
@@ -306,7 +321,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center border border-gray-300 rounded">
+                  <div className="flex items-center border border-gray-300 rounded w-[100px] justify-center">
                     <button
                       type="button"
                       onClick={() => {
@@ -320,7 +335,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                     >
                       −
                     </button>
-                    <span className="px-3 py-1 text-sm min-w-[40px] text-center">{addon.quantity}</span>
+                    <span className="px-2 py-1 text-sm w-[36px] text-center">{addon.quantity}</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -335,7 +350,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                       +
                     </button>
                   </div>
-                  <span className="text-sm font-medium w-24 text-right">
+                  <span className="text-sm font-medium w-20 text-right">
                     {addonTotalPrice.toLocaleString()}원
                   </span>
                   <button
