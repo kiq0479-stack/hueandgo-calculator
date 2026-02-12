@@ -20,6 +20,7 @@ export default function Home() {
     removeItem,
     updateQuantity,
     updateUnitPrice,
+    updateName,
     updateDiscountRate,
     updateTruncation,
     clearAll,
@@ -138,6 +139,7 @@ export default function Home() {
                 onRemove={removeItem}
                 onUpdateQuantity={updateQuantity}
                 onUpdateUnitPrice={updateUnitPrice}
+                onUpdateName={updateName}
                 onDiscountChange={updateDiscountRate}
                 onTruncationChange={updateTruncation}
                 onClearAll={clearAllWithManual}
@@ -224,6 +226,7 @@ export default function Home() {
                 onRemove={removeItem}
                 onUpdateQuantity={updateQuantity}
                 onUpdateUnitPrice={updateUnitPrice}
+                onUpdateName={updateName}
                 onDiscountChange={updateDiscountRate}
                 onTruncationChange={updateTruncation}
                 onClearAll={clearAllWithManual}

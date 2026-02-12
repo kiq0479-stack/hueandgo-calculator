@@ -21,6 +21,7 @@ interface QuoteItemListProps {
   onRemove: (id: string) => void;
   onUpdateQuantity: (id: string, quantity: number) => void;
   onUpdateUnitPrice: (id: string, unitPrice: number) => void;
+  onUpdateName?: (id: string, name: string) => void;
   onDiscountChange: (rate: number) => void;
   onTruncationChange: (type: TruncationType) => void;
   onClearAll: () => void;
@@ -142,6 +143,7 @@ export default function QuoteItemList({
   onRemove,
   onUpdateQuantity,
   onUpdateUnitPrice,
+  onUpdateName,
   onDiscountChange,
   onTruncationChange,
   onClearAll,
@@ -543,9 +545,18 @@ export default function QuoteItemList({
                     <td className="border-b border-r border-black px-1 py-1 text-center">{rowNum}</td>
                     <td className="border-b border-r border-black px-1 py-1">
                       <div className="flex items-center gap-1">
-                        <span title={displayName}>
-                          {displayName}
-                        </span>
+                        {onUpdateName ? (
+                          <input
+                            type="text"
+                            value={displayName}
+                            onChange={(e) => onUpdateName(item.id, e.target.value)}
+                            className="flex-1 bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
+                          />
+                        ) : (
+                          <span title={displayName}>
+                            {displayName}
+                          </span>
+                        )}
                         <button
                           type="button"
                           onClick={() => onRemove(item.id)}

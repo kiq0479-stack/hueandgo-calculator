@@ -91,6 +91,17 @@ export default function useQuote() {
     );
   }, []);
 
+  // 항목 품명 변경
+  const updateName = useCallback((id: string, name: string) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, product: { ...item.product, product_name: name } }
+          : item
+      )
+    );
+  }, []);
+
   // 할인율 변경 (0~100)
   const updateDiscountRate = useCallback((rate: number) => {
     setDiscountRate(Math.max(0, Math.min(100, rate)));
@@ -146,6 +157,7 @@ export default function useQuote() {
     removeItem,
     updateQuantity,
     updateUnitPrice,
+    updateName,
     updateDiscountRate,
     updateTruncation,
     clearAll,

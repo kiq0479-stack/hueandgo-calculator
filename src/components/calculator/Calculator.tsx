@@ -289,7 +289,15 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                   >
                     −
                   </button>
-                  <span className="px-2 py-1 text-sm w-[36px] text-center">{quantity}</span>
+                  <input
+                    type="text"
+                    value={quantity}
+                    onChange={(e) => {
+                      const num = Number(e.target.value.replace(/,/g, ''));
+                      if (!isNaN(num) && num >= 1) setQuantity(num);
+                    }}
+                    className="w-[36px] text-center text-sm border-0 focus:ring-0 focus:outline-none bg-transparent"
+                  />
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
@@ -355,7 +363,19 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                     >
                       −
                     </button>
-                    <span className="px-2 py-1 text-sm w-[36px] text-center">{addon.quantity}</span>
+                    <input
+                      type="text"
+                      value={addon.quantity}
+                      onChange={(e) => {
+                        const num = Number(e.target.value.replace(/,/g, ''));
+                        if (!isNaN(num) && num >= 1) {
+                          setCafe24Addons(cafe24Addons.map((a, i) => 
+                            i === index ? { ...a, quantity: num } : a
+                          ));
+                        }
+                      }}
+                      className="w-[36px] text-center text-sm border-0 focus:ring-0 focus:outline-none bg-transparent"
+                    />
                     <button
                       type="button"
                       onClick={() => {
