@@ -68,9 +68,18 @@ export default function ProductSelector({ onSelect, selectedProductNo }: Product
     }
   }
 
-  // 필터링: "파트너 전용" 포함 + 검색어
+  // 제외할 상품 코드 목록
+  const excludedProductCodes = [
+    'P00000OE', // (파트너 전용_에디터) 아크릴 키링
+    'P00000NQ', // (파트너 전용) 추가금 결제
+    'P00000ID', // (파트너 전용) 뒷대지 제작
+    'P00000EH', // (파트너 전용) 페어 참여용 굿즈 세트
+  ];
+
+  // 필터링: "파트너 전용" 포함 + 제외 목록 제외 + 검색어
   const filtered = products
     .filter((p) => p.product_name.includes('파트너 전용'))
+    .filter((p) => !excludedProductCodes.includes(p.product_code))
     .filter((p) =>
       p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.product_code.toLowerCase().includes(searchTerm.toLowerCase())
