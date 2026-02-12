@@ -1,50 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Cafe24Product } from '@/types/cafe24';
+import { useSharedSettings } from '@/hooks/useSharedSettings';
 
 interface ProductSelectorProps {
   onSelect: (product: Cafe24Product) => void;
   selectedProductNo?: number;
 }
 
-// 핀 고정 상품 localStorage 키
-const PINNED_PRODUCTS_KEY = 'hueandgo_pinned_products';
-
 export default function ProductSelector({ onSelect, selectedProductNo }: ProductSelectorProps) {
   const [products, setProducts] = useState<Cafe24Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [pinnedIds, setPinnedIds] = useState<number[]>([]);
 
-  // 핀 상태 로드
-  useEffect(() => {
-    const saved = localStorage.getItem(PINNED_PRODUCTS_KEY);
-    if (saved) {
-      try {
-        setPinnedIds(JSON.parse(saved));
-      } catch {
-        // 무시
-      }
-    }
-  }, []);
-
-  // 핀 상태 저장
-  function savePinned(ids: number[]) {
-    setPinnedIds(ids);
-    localStorage.setItem(PINNED_PRODUCTS_KEY, JSON.stringify(ids));
-  }
+  // 서버에서 즐겨찾기 로드
+  const { data: pinnedIds, save: savePinned, loading: pinnedLoading } = useSharedSettings<number[]>(
+    'pinned_products',
+    []
+  );
 
   // 핀 토글
-  function togglePin(productNo: number, e: React.MouseEvent) {
+  const togglePin = useCallback((productNo: number, e: React.MouseEvent) => {
     e.stopPropagation(); // 상품 선택 방지
-    if (pinnedIds.includes(productNo)) {
-      savePinned(pinnedIds.filter((id) => id !== productNo));
+    const currentPinned = pinnedIds ?? [];
+    if (currentPinned.includes(productNo)) {
+      savePinned(currentPinned.filter((id) => id !== productNo));
     } else {
-      savePinned([...pinnedIds, productNo]);
+      savePinned([...currentPinned, productNo]);
     }
-  }
+  }, [pinnedIds, savePinned]);
 
   useEffect(() => {
     loadProducts();
@@ -86,9 +72,10 @@ export default function ProductSelector({ onSelect, selectedProductNo }: Product
     );
 
   // 정렬: 핀 고정 → 나머지
+  const currentPinned = pinnedIds ?? [];
   const sorted = [...filtered].sort((a, b) => {
-    const aPinned = pinnedIds.includes(a.product_no);
-    const bPinned = pinnedIds.includes(b.product_no);
+    const aPinned = currentPinned.includes(a.product_no);
+    const bPinned = currentPinned.includes(b.product_no);
     if (aPinned && !bPinned) return -1;
     if (!aPinned && bPinned) return 1;
     return 0;
@@ -133,7 +120,7 @@ export default function ProductSelector({ onSelect, selectedProductNo }: Product
           ) : (
             <ul className="divide-y divide-gray-100">
               {sorted.map((product) => {
-                const isPinned = pinnedIds.includes(product.product_no);
+                const isPinned = currentPinned.includes(product.product_no);
                 return (
                   <li
                     key={product.product_no}

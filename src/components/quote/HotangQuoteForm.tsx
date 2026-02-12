@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { QuoteItem as QuoteItemType } from '@/components/calculator/Calculator';
 import type { QuoteTotals, TruncationType } from '@/hooks/useQuote';
 import { HOTANGGAMTANG } from '@/lib/quote/templates';
 import DiscountControl from './DiscountControl';
+import { useSharedSettings, DEFAULT_HOTANG_FORM, type HotangFormSettings } from '@/hooks/useSharedSettings';
 
 // 수동 입력 행 타입
 type ManualRow = { id: string; name: string; qty: number; price: number };
@@ -185,62 +186,64 @@ export default function HotangQuoteForm({
   const setBizPhone = externalBizPhoneChange ?? setInternalBizPhone;
   const manualRows = externalManualRows ?? internalManualRows;
   
-  // 설명 텍스트 (내부 상태만 - 거래명세서도 동일)
-  const [descLine1, setDescLine1] = useState('아크릴 굿즈 주문제작에 대하여');
-  const [descLine2, setDescLine2] = useState('아래와 같이 견적합니다.');
+  // 서버에서 양식 설정 로드
+  const { data: formSettings, save: saveFormToServer, loading: formLoading } = useSharedSettings<HotangFormSettings>(
+    'hotang_form',
+    DEFAULT_HOTANG_FORM
+  );
+
+  // 설명 텍스트 (내부 상태)
+  const [descLine1, setDescLine1] = useState(DEFAULT_HOTANG_FORM.descLine1);
+  const [descLine2, setDescLine2] = useState(DEFAULT_HOTANG_FORM.descLine2);
   
-  // 도장 설정 (내부 상태만)
-  const [stampTop, setStampTop] = useState(0);
-  const [stampRight, setStampRight] = useState(0);
-  const [stampSize, setStampSize] = useState(40);
+  // 도장 설정 (내부 상태)
+  const [stampTop, setStampTop] = useState(DEFAULT_HOTANG_FORM.stampTop);
+  const [stampRight, setStampRight] = useState(DEFAULT_HOTANG_FORM.stampRight);
+  const [stampSize, setStampSize] = useState(DEFAULT_HOTANG_FORM.stampSize);
   
-  // 레이아웃 설정 (내부 상태만)
-  const [leftWidth, setLeftWidth] = useState(45);
+  // 레이아웃 설정 (내부 상태)
+  const [leftWidth, setLeftWidth] = useState(DEFAULT_HOTANG_FORM.leftWidth);
+
+  // 서버 데이터 로드되면 로컬 상태 업데이트
+  useEffect(() => {
+    if (formSettings) {
+      setDescLine1(formSettings.descLine1);
+      setDescLine2(formSettings.descLine2);
+      setStampTop(formSettings.stampTop);
+      setStampRight(formSettings.stampRight);
+      setStampSize(formSettings.stampSize);
+      setLeftWidth(formSettings.leftWidth);
+      // 사업자정보 (props가 없을 때만)
+      if (!externalBizRegNo && formSettings.bizRegNo) setInternalBizRegNo(formSettings.bizRegNo);
+      if (!externalBizName && formSettings.bizName) setInternalBizName(formSettings.bizName);
+      if (!externalBizCeo && formSettings.bizCeo) setInternalBizCeo(formSettings.bizCeo);
+      if (!externalBizAddress && formSettings.bizAddress) setInternalBizAddress(formSettings.bizAddress);
+      if (!externalBizType && formSettings.bizType) setInternalBizType(formSettings.bizType);
+      if (!externalBizItem && formSettings.bizItem) setInternalBizItem(formSettings.bizItem);
+      if (!externalBizPhone && formSettings.bizPhone) setInternalBizPhone(formSettings.bizPhone);
+      if (!externalMemoText && formSettings.memoText) setInternalMemoText(formSettings.memoText);
+    }
+  }, [formSettings]);
 
   useEffect(() => {
     // 날짜 초기화 (props가 없을 때만)
     if (!externalQuoteDate) {
       setInternalQuoteDate(getTodayISO());
     }
-    
-    // localStorage에서 저장된 설정 불러오기 (내부 상태용)
-    const saved = localStorage.getItem('hotangFormSettings');
-    if (saved) {
-      try {
-        const settings = JSON.parse(saved);
-        if (settings.descLine1) setDescLine1(settings.descLine1);
-        if (settings.descLine2) setDescLine2(settings.descLine2);
-        // 사업자정보는 props가 없을 때만 localStorage에서 로드
-        if (!externalBizRegNo && settings.bizRegNo) setInternalBizRegNo(settings.bizRegNo);
-        if (!externalBizName && settings.bizName) setInternalBizName(settings.bizName);
-        if (!externalBizCeo && settings.bizCeo) setInternalBizCeo(settings.bizCeo);
-        if (!externalBizAddress && settings.bizAddress) setInternalBizAddress(settings.bizAddress);
-        if (!externalBizType && settings.bizType) setInternalBizType(settings.bizType);
-        if (!externalBizItem && settings.bizItem) setInternalBizItem(settings.bizItem);
-        if (!externalBizPhone && settings.bizPhone) setInternalBizPhone(settings.bizPhone);
-        if (!externalMemoText && settings.memoText) setInternalMemoText(settings.memoText);
-        if (settings.stampTop !== undefined) setStampTop(settings.stampTop);
-        if (settings.stampRight !== undefined) setStampRight(settings.stampRight);
-        if (settings.stampSize !== undefined) setStampSize(settings.stampSize);
-        if (settings.leftWidth !== undefined) setLeftWidth(settings.leftWidth);
-      } catch (e) {
-        console.error('Failed to load saved settings:', e);
-      }
-    }
-  }, []);
+  }, [externalQuoteDate]);
 
-  // 양식 저장 함수
-  const saveFormSettings = () => {
-    const settings = {
+  // 양식 저장 함수 (서버에 저장)
+  const handleSaveFormSettings = useCallback(() => {
+    const settings: HotangFormSettings = {
       descLine1, descLine2,
       bizRegNo, bizName, bizCeo, bizAddress, bizType, bizItem, bizPhone,
       memoText,
       stampTop, stampRight, stampSize,
       leftWidth,
     };
-    localStorage.setItem('hotangFormSettings', JSON.stringify(settings));
+    saveFormToServer(settings);
     alert('호탱감탱 양식이 저장되었습니다!');
-  };
+  }, [descLine1, descLine2, bizRegNo, bizName, bizCeo, bizAddress, bizType, bizItem, bizPhone, memoText, stampTop, stampRight, stampSize, leftWidth, saveFormToServer]);
 
   const previewId = documentType === 'invoice' ? 'invoice-preview' : 'quote-preview';
   const docTitle = documentType === 'invoice' ? '거 래 명 세 서' : '견 적 서';
@@ -595,10 +598,10 @@ export default function HotangQuoteForm({
       {/* 양식 저장 버튼 */}
       <button
         type="button"
-        onClick={saveFormSettings}
+        onClick={handleSaveFormSettings}
         className="w-full rounded border border-blue-300 bg-blue-50 px-3 py-1 text-[11px] text-blue-600 hover:bg-blue-100"
       >
-        💾 현재 양식 저장
+        💾 현재 양식 저장 (서버)
       </button>
 
       {/* 할인/절삭 설정 */}

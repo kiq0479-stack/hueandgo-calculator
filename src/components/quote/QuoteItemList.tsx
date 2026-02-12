@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { QuoteItem as QuoteItemType } from '@/components/calculator/Calculator';
 import type { QuoteTotals, TruncationType } from '@/hooks/useQuote';
 import { calcItemTotal } from '@/hooks/useQuote';
 import DiscountControl from './DiscountControl';
 import { getTemplateById, BRANDIZ, HOTANGGAMTANG } from '@/lib/quote/templates';
 import HotangQuoteForm from './HotangQuoteForm';
+import { useSharedSettings, DEFAULT_BRANDIZ_FORM, type BrandizFormSettings } from '@/hooks/useSharedSettings';
 
 // 수동 입력 행 타입
 type ManualRow = { id: string; name: string; qty: number; price: number };
@@ -220,22 +221,35 @@ export default function QuoteItemList({
   const bizPhone = externalBizPhone ?? internalBizPhone;
   const setBizPhone = onBizPhoneChange ?? setInternalBizPhone;
 
-  // 도장 위치/사이즈 상태
-  const [stampTop, setStampTop] = useState(18);
-  const [stampRight, setStampRight] = useState(8);
-  const [stampSize, setStampSize] = useState(40);
+  // 서버에서 양식 설정 로드
+  const { data: formSettings, save: saveFormSettings, loading: formLoading } = useSharedSettings<BrandizFormSettings>(
+    'brandiz_form',
+    DEFAULT_BRANDIZ_FORM
+  );
 
-  // 레이아웃 상태
-  const [leftWidth, setLeftWidth] = useState(30); // 날짜/수신/참조 영역 너비 (%) - 사업자정보 영역 70%
-  const [bizLabelWidth, setBizLabelWidth] = useState(55); // 사업자정보 라벨 너비 (px)
-  const [colWidths, setColWidths] = useState({
-    no: 26,      // No. 열 (px)
-    spec: 32,    // 규격 열 (px)
-    qty: 55,     // 수량 열 (px)
-    price: 65,   // 단가 열 (px)
-    total: 75,   // 견적가 열 (px)
-    note: 28,    // 비고 열 (px)
-  });
+  // 로컬 상태 (서버 데이터 기반, 즉각 반응용)
+  const [stampTop, setStampTop] = useState(DEFAULT_BRANDIZ_FORM.stampTop);
+  const [stampRight, setStampRight] = useState(DEFAULT_BRANDIZ_FORM.stampRight);
+  const [stampSize, setStampSize] = useState(DEFAULT_BRANDIZ_FORM.stampSize);
+  const [leftWidth, setLeftWidth] = useState(DEFAULT_BRANDIZ_FORM.leftWidth);
+  const [bizLabelWidth, setBizLabelWidth] = useState(DEFAULT_BRANDIZ_FORM.bizLabelWidth);
+  const [colWidths, setColWidths] = useState(DEFAULT_BRANDIZ_FORM.colWidths);
+
+  // 서버 데이터 로드되면 로컬 상태 업데이트
+  useEffect(() => {
+    if (formSettings) {
+      setStampTop(formSettings.stampTop);
+      setStampRight(formSettings.stampRight);
+      setStampSize(formSettings.stampSize);
+      setLeftWidth(formSettings.leftWidth);
+      setBizLabelWidth(formSettings.bizLabelWidth);
+      setColWidths(formSettings.colWidths);
+      // 외부 관리가 아닐 때만 메모 업데이트
+      if (!externalMemoText && formSettings.memoText) {
+        setInternalMemoText(formSettings.memoText);
+      }
+    }
+  }, [formSettings, externalMemoText]);
 
   // 수동 입력 행 상태 (외부 props 또는 내부 상태)
   const [internalManualRows, setInternalManualRows] = useState<ManualRow[]>([]);
@@ -246,31 +260,13 @@ export default function QuoteItemList({
     ? () => {} // 외부 관리 시 내부 setter 무시
     : setInternalManualRows;
 
-  // 컴포넌트 마운트 시 저장된 양식 불러오기 + 오늘 날짜 설정
+  // 컴포넌트 마운트 시 오늘 날짜 설정
   useEffect(() => {
     // 외부 관리가 아닐 때만 내부 상태 초기화
     if (!externalQuoteDate) {
       setInternalQuoteDate(getTodayISO());
     }
-    
-    // localStorage에서 저장된 양식 불러오기
-    const saved = localStorage.getItem('quoteFormSettings');
-    if (saved) {
-      try {
-        const settings = JSON.parse(saved);
-        if (settings.stampTop !== undefined) setStampTop(settings.stampTop);
-        if (settings.stampRight !== undefined) setStampRight(settings.stampRight);
-        if (settings.stampSize !== undefined) setStampSize(settings.stampSize);
-        if (settings.leftWidth !== undefined) setLeftWidth(settings.leftWidth);
-        if (settings.bizLabelWidth !== undefined) setBizLabelWidth(settings.bizLabelWidth);
-        if (settings.colWidths) setColWidths(settings.colWidths);
-        // 외부 관리가 아닐 때만 메모 불러오기
-        if (settings.memoText && !externalMemoText) setInternalMemoText(settings.memoText);
-      } catch (e) {
-        console.error('Failed to load saved settings:', e);
-      }
-    }
-  }, [externalQuoteDate, externalMemoText]);
+  }, [externalQuoteDate]);
 
   // 템플릿 변경 시 사업자 정보 업데이트 (외부 관리 아닐 때만)
   useEffect(() => {
@@ -280,9 +276,9 @@ export default function QuoteItemList({
     if (!externalBizPhone) setInternalBizPhone(templateId === 'hotanggamtang' ? '010-8764-8950' : '010-2116-2349');
   }, [templateId, currentTemplate, externalBizAddress, externalBizName, externalBizCeo, externalBizPhone]);
 
-  // 양식 저장 함수
-  const saveFormSettings = () => {
-    const settings = {
+  // 양식 저장 함수 (서버에 저장)
+  const handleSaveFormSettings = useCallback(() => {
+    const settings: BrandizFormSettings = {
       bizAddress,
       bizName,
       bizCeo,
@@ -295,9 +291,9 @@ export default function QuoteItemList({
       colWidths,
       memoText,
     };
-    localStorage.setItem('quoteFormSettings', JSON.stringify(settings));
+    saveFormSettings(settings);
     alert('브랜디즈 양식이 저장되었습니다!');
-  };
+  }, [bizAddress, bizName, bizCeo, bizPhone, stampTop, stampRight, stampSize, leftWidth, bizLabelWidth, colWidths, memoText, saveFormSettings]);
 
   // 수동 행 추가 (외부 또는 내부)
   const addManualRow = externalAddManualRow ?? (() => {
@@ -825,10 +821,10 @@ export default function QuoteItemList({
       {/* 양식 저장 버튼 */}
       <button
         type="button"
-        onClick={saveFormSettings}
+        onClick={handleSaveFormSettings}
         className="w-full rounded border border-blue-300 bg-blue-50 px-3 py-1 text-[11px] text-blue-600 hover:bg-blue-100"
       >
-        💾 현재 양식 저장
+        💾 현재 양식 저장 (서버)
       </button>
 
       {/* 할인/절삭 설정 */}
