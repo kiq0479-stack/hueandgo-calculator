@@ -107,7 +107,6 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const matchingVariant = findMatchingVariant();
   const optionExtra = matchingVariant ? Number(matchingVariant.additional_amount) : 0;
   const unitPrice = basePrice + optionExtra;
-  const mainProductTotal = selectedProduct ? unitPrice * quantity : 0;
   const cafe24AddonTotal = cafe24Addons.reduce(
     (sum, a) => {
       const addonBasePrice = Number(a.product.price) || 0;
@@ -116,8 +115,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     },
     0
   );
-  const totalPrice = mainProductTotal + cafe24AddonTotal;
-  const totalItemCount = (selectedProduct ? 1 : 0) + cafe24Addons.length;
+  // totalPrice, totalItemCount는 canAddMainProduct 정의 후 계산 (아래에서)
 
   // 견적에 추가 (메인 상품 + 추가구성상품 각각 별도 행으로)
   function handleAddToQuote() {
@@ -192,6 +190,11 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     (hasOptions && (requiredOptions.length === 0 || allRequiredSelected)) // 옵션 있는데 필수옵션 없거나 다 선택함
   );
   const canAdd = canAddMainProduct || cafe24Addons.length > 0;
+  
+  // 총 금액/수량 계산 (canAddMainProduct 기준)
+  const mainProductTotal = canAddMainProduct ? unitPrice * quantity : 0;
+  const totalPrice = mainProductTotal + cafe24AddonTotal;
+  const totalItemCount = (canAddMainProduct ? 1 : 0) + cafe24Addons.length;
 
   return (
     <div className="space-y-6">
