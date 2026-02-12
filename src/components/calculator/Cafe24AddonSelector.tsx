@@ -217,14 +217,14 @@ export default function Cafe24AddonSelector({
                       {/* 옵션 드롭다운 */}
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">
-                          {optionName} 선택 <span className="text-red-500">*</span>
+                          옵션 선택 <span className="text-red-500">*</span>
                         </label>
                         <select
                           value={selectedOption}
                           onChange={(e) => setSelectedOption(e.target.value)}
                           className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         >
-                          <option value="">- {optionName}을(를) 선택해 주세요 -</option>
+                          <option value="">- 옵션을 선택해 주세요 -</option>
                           {optionValues.map((opt) => {
                             const amount = Number(opt.additional_amount) || 0;
                             const amountText = amount > 0 ? ` (+${amount.toLocaleString()}원)` : 
