@@ -73,11 +73,11 @@ export default function useQuote() {
     setItems((prev) => prev.filter((i) => i.id !== id));
   }, []);
 
-  // 항목 수량 변경
+  // 항목 수량 변경 (0 허용 - 빈 칸 입력 시)
   const updateQuantity = useCallback((id: string, quantity: number) => {
     setItems((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
+        item.id === id ? { ...item, quantity: Math.max(0, quantity) } : item
       )
     );
   }, []);

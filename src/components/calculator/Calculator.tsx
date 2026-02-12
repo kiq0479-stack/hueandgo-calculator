@@ -5,7 +5,7 @@ import type { Cafe24Product, Cafe24ProductOption, Cafe24Variant, Cafe24Additiona
 import ProductSelector from './ProductSelector';
 import OptionSelector from './OptionSelector';
 import Cafe24AddonSelector, { type SelectedAddon } from './Cafe24AddonSelector';
-import { cleanAddonName } from '@/lib/product-addon-mapping';
+import { cleanAddonName, cleanMainProductName } from '@/lib/product-addon-mapping';
 
 // AddonItem은 이제 사용 안 함 (수동 추가상품 제거)
 export interface AddonItem {
@@ -125,9 +125,17 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
 
     // 1. 메인 상품 추가 (필수옵션 충족한 경우에만)
     if (canAddMainProduct && selectedProduct) {
+      // 메인상품명 정제: "(파트너 전용)" 제거 + 사이즈 옵션 추가
+      const optionStr = Object.values(selectedOptions).join(' ');
+      let displayName = cleanMainProductName(selectedProduct.product_name);
+      const sizeMatch = optionStr.match(/(\d+)\s*mm/i);
+      if (sizeMatch) {
+        displayName = `${displayName} (${sizeMatch[1]}mm)`;
+      }
+      
       const mainItem: QuoteItem = {
         id: crypto.randomUUID(),
-        product: selectedProduct,
+        product: { ...selectedProduct, product_name: displayName },
         selectedOptions: { ...selectedOptions },
         optionAdditionalAmounts: { ...optionAmounts },
         quantity,
@@ -284,17 +292,22 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                 <div className="flex items-center border border-gray-300 rounded w-[100px] justify-center">
                   <button
                     type="button"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    onClick={() => setQuantity(Math.max(0, quantity - 1))}
                     className="px-2 py-1 text-gray-500 hover:bg-gray-100"
                   >
                     −
                   </button>
                   <input
                     type="text"
-                    value={quantity}
+                    value={quantity === 0 ? '' : quantity}
                     onChange={(e) => {
-                      const num = Number(e.target.value.replace(/,/g, ''));
-                      if (!isNaN(num) && num >= 1) setQuantity(num);
+                      const val = e.target.value.replace(/,/g, '');
+                      if (val === '') {
+                        setQuantity(0);
+                        return;
+                      }
+                      const num = Number(val);
+                      if (!isNaN(num)) setQuantity(num);
                     }}
                     className="w-[36px] text-center text-sm border-0 focus:ring-0 focus:outline-none bg-transparent"
                   />
@@ -355,7 +368,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                       onClick={() => {
                         setCafe24Addons(cafe24Addons.map((a, i) => 
                           i === index 
-                            ? { ...a, quantity: Math.max(1, a.quantity - 1) }
+                            ? { ...a, quantity: Math.max(0, a.quantity - 1) }
                             : a
                         ));
                       }}
@@ -365,10 +378,17 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
                     </button>
                     <input
                       type="text"
-                      value={addon.quantity}
+                      value={addon.quantity === 0 ? '' : addon.quantity}
                       onChange={(e) => {
-                        const num = Number(e.target.value.replace(/,/g, ''));
-                        if (!isNaN(num) && num >= 1) {
+                        const val = e.target.value.replace(/,/g, '');
+                        if (val === '') {
+                          setCafe24Addons(cafe24Addons.map((a, i) => 
+                            i === index ? { ...a, quantity: 0 } : a
+                          ));
+                          return;
+                        }
+                        const num = Number(val);
+                        if (!isNaN(num)) {
                           setCafe24Addons(cafe24Addons.map((a, i) => 
                             i === index ? { ...a, quantity: num } : a
                           ));

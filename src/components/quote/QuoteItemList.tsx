@@ -537,8 +537,8 @@ export default function QuoteItemList({
                 const rowNum = index + 1;
                 const itemTotal = calcItemTotal(item);
                 const itemTotalWithVat = Math.round(itemTotal);
-                const optionStr = Object.values(item.selectedOptions || {}).join(' ');
-                const displayName = formatProductName(item.product.product_name, optionStr);
+                // 품명은 이미 Calculator에서 정제되어 저장됨 (formatProductName 불필요)
+                const displayName = item.product.product_name;
 
                 return (
                   <tr key={item.id} className="group hover:bg-blue-50">
@@ -570,10 +570,15 @@ export default function QuoteItemList({
                     <td className="border-b border-r border-black px-0.5 py-1 text-center">
                       <input
                         type="text"
-                        value={item.quantity.toLocaleString()}
+                        value={item.quantity === 0 ? '' : item.quantity.toLocaleString()}
                         onChange={(e) => {
-                          const num = Number(e.target.value.replace(/,/g, ''));
-                          if (!isNaN(num)) onUpdateQuantity(item.id, Math.max(1, num));
+                          const val = e.target.value.replace(/,/g, '');
+                          if (val === '') {
+                            onUpdateQuantity(item.id, 0);
+                            return;
+                          }
+                          const num = Number(val);
+                          if (!isNaN(num)) onUpdateQuantity(item.id, num);
                         }}
                         className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
                       />
@@ -625,10 +630,15 @@ export default function QuoteItemList({
                     <td className="border-b border-r border-black px-0.5 py-1 text-center">
                       <input
                         type="text"
-                        value={row.qty.toLocaleString()}
+                        value={row.qty === 0 ? '' : row.qty.toLocaleString()}
                         onChange={(e) => {
-                          const num = Number(e.target.value.replace(/,/g, ''));
-                          if (!isNaN(num)) updateManualRow(row.id, 'qty', Math.max(1, num));
+                          const val = e.target.value.replace(/,/g, '');
+                          if (val === '') {
+                            updateManualRow(row.id, 'qty', 0);
+                            return;
+                          }
+                          const num = Number(val);
+                          if (!isNaN(num)) updateManualRow(row.id, 'qty', num);
                         }}
                         className="w-full text-center bg-transparent border-0 focus:ring-1 focus:ring-green-400 rounded text-[11px]"
                       />
