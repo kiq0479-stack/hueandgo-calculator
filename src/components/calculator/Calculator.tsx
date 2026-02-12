@@ -5,6 +5,7 @@ import type { Cafe24Product, Cafe24ProductOption, Cafe24Variant, Cafe24Additiona
 import ProductSelector from './ProductSelector';
 import OptionSelector from './OptionSelector';
 import Cafe24AddonSelector, { type SelectedAddon } from './Cafe24AddonSelector';
+import { cleanAddonName } from '@/lib/product-addon-mapping';
 
 // AddonItem은 이제 사용 안 함 (수동 추가상품 제거)
 export interface AddonItem {
@@ -143,10 +144,20 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
       const optionAmount = addon.optionAdditionalAmount || 0;
       const addonUnitPrice = addonBasePrice + optionAmount;
       
-      // 상품명에 옵션 정보 포함
-      const productName = addon.selectedOption 
-        ? `${addon.product.product_name} (${addon.selectedOption})`
-        : addon.product.product_name;
+      // 추가상품명 정제 규칙:
+      // - optionCount > 1 (옵션 2개 이상): 옵션 이름으로 표시
+      // - optionCount <= 1 (옵션 1개 또는 없음): 상품명에서 메인상품명, 괄호 안/뒤 내용 제거
+      const optionCount = addon.optionCount || 0;
+      const mainProductName = selectedProduct?.product_name || '';
+      
+      let productName: string;
+      if (optionCount > 1 && addon.selectedOption) {
+        // 옵션 2개 이상: 선택한 옵션 이름으로 표시
+        productName = addon.selectedOption;
+      } else {
+        // 옵션 1개 또는 없음: 상품명 정제
+        productName = cleanAddonName(addon.product.product_name, mainProductName);
+      }
       
       // addon.product를 Cafe24Product로 변환 (타입 단언 사용)
       const addonProduct = {

@@ -51,18 +51,20 @@ export const PRODUCT_ADDON_MAPPING: Record<string, string[]> = {
 export function cleanAddonName(addonName: string, mainProductName?: string): string {
   let cleaned = addonName;
   
-  // 1. 괄호 안 내용 제거: (...)
-  cleaned = cleaned.replace(/\s*\([^)]*\)/g, '');
-  
-  // 2. 괄호 뒤 내용 제거 (괄호로 시작하는 경우)
+  // 1. 괄호와 그 뒤의 모든 내용 제거 (먼저 처리!)
   // 예: "배경제거(누끼작업) 이미지 개수에..." → "배경제거"
   cleaned = cleaned.replace(/\([^)]*\).*/g, '');
+  
+  // 2. 남은 공백있는 괄호 제거: " (...)"
+  // 예: "키링 개별 포장 (수량에 맞게...)" → "키링 개별 포장"
+  cleaned = cleaned.replace(/\s+\([^)]*\)/g, '');
   
   // 3. 메인상품명에서 공통 키워드 추출해서 제거
   // 메인상품명: "(파트너 전용) 아크릴 키링" → 키워드: ["아크릴", "키링"]
   if (mainProductName) {
     const mainKeywords = mainProductName
       .replace(/\(파트너 전용\)/g, '')
+      .replace(/\(파트너 전용_에디터\)/g, '')
       .replace(/\([^)]*\)/g, '')
       .trim()
       .split(/\s+/)
@@ -74,12 +76,12 @@ export function cleanAddonName(addonName: string, mainProductName?: string): str
     }
   }
   
-  // 4. 앞뒤 공백 정리
-  cleaned = cleaned.trim();
+  // 4. 앞뒤 공백 정리 및 중복 공백 제거
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
   
-  // 5. 빈 문자열이면 원본 반환
+  // 5. 빈 문자열이면 원본에서 괄호만 제거해서 반환
   if (!cleaned) {
-    return addonName.replace(/\s*\([^)]*\)/g, '').trim() || addonName;
+    return addonName.replace(/\([^)]*\).*/g, '').replace(/\s+\([^)]*\)/g, '').trim() || addonName;
   }
   
   return cleaned;

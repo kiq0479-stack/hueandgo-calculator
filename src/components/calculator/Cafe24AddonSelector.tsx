@@ -18,6 +18,7 @@ export interface SelectedAddon {
   quantity: number;
   selectedOption?: string;
   optionAdditionalAmount?: number;
+  optionCount?: number; // 해당 추가상품의 옵션 개수 (1개면 상품명 정제, 2개 이상이면 옵션명 사용)
 }
 
 interface Cafe24AddonSelectorProps {
@@ -113,12 +114,16 @@ export default function Cafe24AddonSelector({
     }
 
     const optionAmount = selectedOption ? getOptionAdditionalAmount(selectedOption) : 0;
+    
+    // 옵션 개수 계산 (첫번째 옵션의 값 개수)
+    const optionCount = optionValues.length;
 
     const newAddon: SelectedAddon = {
       product: activeProduct,
       quantity: inputQuantity,
       selectedOption: selectedOption || undefined,
       optionAdditionalAmount: optionAmount,
+      optionCount,
     };
 
     onAddonsChange([...selectedAddons, newAddon]);
