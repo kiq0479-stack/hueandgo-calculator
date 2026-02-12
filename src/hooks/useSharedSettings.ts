@@ -27,6 +27,11 @@ export function useSharedSettings<T>(
   // 저장 debounce를 위한 ref
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingValueRef = useRef<T | null>(null);
+  
+  // defaultValue를 ref로 저장해서 참조 안정성 확보 (무한 루프 방지)
+  const defaultValueRef = useRef(defaultValue);
+  // 이미 로드했는지 추적
+  const loadedRef = useRef(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -37,7 +42,7 @@ export function useSharedSettings<T>(
       if (!res.ok) throw new Error('Failed to fetch settings');
 
       const json = await res.json();
-      setData(json.data ?? defaultValue);
+      setData(json.data ?? defaultValueRef.current);
     } catch (err) {
       console.error(`Failed to load ${key}:`, err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
@@ -47,18 +52,22 @@ export function useSharedSettings<T>(
         try {
           setData(JSON.parse(localData));
         } catch {
-          setData(defaultValue);
+          setData(defaultValueRef.current);
         }
       } else {
-        setData(defaultValue);
+        setData(defaultValueRef.current);
       }
     } finally {
       setLoading(false);
     }
-  }, [key, defaultValue]);
+  }, [key]);
 
   useEffect(() => {
-    fetchData();
+    // 한 번만 로드 (무한 루프 방지)
+    if (!loadedRef.current) {
+      loadedRef.current = true;
+      fetchData();
+    }
   }, [fetchData]);
 
   const saveToServer = useCallback(async (value: T) => {
