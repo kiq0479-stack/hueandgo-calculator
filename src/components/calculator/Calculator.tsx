@@ -246,10 +246,10 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
       )}
 
       {/* 가격 요약 - 상품별 리스트 형태 */}
-      {(selectedProduct || cafe24Addons.length > 0) && (
+      {(canAddMainProduct || cafe24Addons.length > 0) && (
         <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-          {/* 메인 상품 */}
-          {selectedProduct && (
+          {/* 메인 상품 (필수옵션 선택 완료 시에만 표시) */}
+          {canAddMainProduct && (
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <div className="flex-1 min-w-0 pr-4">
                 <p className="text-sm font-medium text-gray-900 truncate">
