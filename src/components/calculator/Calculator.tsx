@@ -119,11 +119,11 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
 
   // 견적에 추가 (메인 상품 + 추가구성상품 각각 별도 행으로)
   function handleAddToQuote() {
-    // 메인상품이나 추가상품 중 하나라도 있어야 함
-    if (!selectedProduct && cafe24Addons.length === 0) return;
+    // 메인상품(필수옵션 충족)이나 추가상품 중 하나라도 있어야 함
+    if (!canAddMainProduct && cafe24Addons.length === 0) return;
 
-    // 1. 메인 상품 추가 (선택한 경우에만)
-    if (selectedProduct) {
+    // 1. 메인 상품 추가 (필수옵션 충족한 경우에만)
+    if (canAddMainProduct && selectedProduct) {
       const mainItem: QuoteItem = {
         id: crypto.randomUUID(),
         product: selectedProduct,
