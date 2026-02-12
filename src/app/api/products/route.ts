@@ -5,11 +5,12 @@ import { isAuthenticated, setTokenStore, type TokenData } from '@/lib/cafe24/aut
 import { fetchProducts, fetchProductWithDetails, fetchProductByCode } from '@/lib/cafe24/products';
 
 // 로컬 추가구성상품 매핑 (직접 import - Vercel serverless 호환)
+// 새 형식: { [mainProductCode]: string[] } (추가상품 코드 배열)
 import addonMappingData from '@/data/addon-mapping.json';
 
-// 로컬 추가구성상품 매핑 반환
-function loadAddonMapping(): Record<string, Array<{ product_code: string; product_name: string; price: number }>> {
-  return addonMappingData as Record<string, Array<{ product_code: string; product_name: string; price: number }>>;
+// 로컬 추가구성상품 코드 매핑 반환
+function loadAddonMapping(): Record<string, string[]> {
+  return addonMappingData as Record<string, string[]>;
 }
 
 // 쿠키에서 토큰 복원
@@ -61,17 +62,32 @@ export async function GET(request: NextRequest) {
         
         if (finalAdditionalProducts.length === 0 && productCode) {
           const addonMapping = loadAddonMapping();
-          const localAddons = addonMapping[productCode];
-          if (localAddons && localAddons.length > 0) {
-            console.log('[DEBUG] Using local addon mapping for', productCode, ':', localAddons.length, 'items');
-            // 로컬 매핑을 Cafe24 형식으로 변환
-            finalAdditionalProducts = localAddons.map((addon, idx) => ({
-              product_no: idx + 1, // 임시 번호
-              product_code: addon.product_code,
-              product_name: addon.product_name,
-              price: String(addon.price),
-              has_option: 'F' as const,
-            }));
+          const addonCodes = addonMapping[productCode];
+          if (addonCodes && addonCodes.length > 0) {
+            console.log('[DEBUG] Using local addon mapping for', productCode, ':', addonCodes.length, 'codes');
+            // 각 추가상품 코드에 대해 Cafe24에서 상품 정보 가져오기
+            const addonProducts = await Promise.all(
+              addonCodes.map(async (code) => {
+                try {
+                  const product = await fetchProductByCode(code);
+                  if (product) {
+                    return {
+                      product_no: product.product_no,
+                      product_code: product.product_code,
+                      product_name: product.product_name,
+                      price: product.price,
+                      small_image: product.small_image,
+                      has_option: product.has_option || 'F',
+                    };
+                  }
+                } catch (e) {
+                  console.error('[DEBUG] Failed to fetch addon product:', code, e);
+                }
+                return null;
+              })
+            );
+            finalAdditionalProducts = addonProducts.filter((p): p is NonNullable<typeof p> => p !== null);
+            console.log('[DEBUG] Fetched addon products:', finalAdditionalProducts.length);
           }
         }
         
