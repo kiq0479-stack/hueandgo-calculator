@@ -1,7 +1,7 @@
 // 상품 API 라우트
 
 import { NextRequest, NextResponse } from 'next/server';
-import { isAuthenticated, setTokenStore, type TokenData } from '@/lib/cafe24/auth';
+import { isAuthenticatedAsync } from '@/lib/cafe24/auth';
 import { fetchProducts, fetchProductWithDetails, fetchProductByCode } from '@/lib/cafe24/products';
 
 // 로컬 추가구성상품 매핑 (직접 import - Vercel serverless 호환)
@@ -13,29 +13,14 @@ function loadAddonMapping(): Record<string, string[]> {
   return addonMappingData as Record<string, string[]>;
 }
 
-// 쿠키에서 토큰 복원
-function restoreTokenFromCookie(request: NextRequest): boolean {
-  const tokenCookie = request.cookies.get('cafe24_token')?.value;
-  if (tokenCookie) {
-    try {
-      const tokenData: TokenData = JSON.parse(tokenCookie);
-      setTokenStore(tokenData);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-  return false;
-}
-
 // GET /api/products - 상품 목록 조회
 // GET /api/products?product_no=123 - 상품 상세 조회 (옵션+품목 포함)
 // GET /api/products?product_code=P00000XX - 상품코드로 상세 조회
 export async function GET(request: NextRequest) {
-  // 쿠키에서 토큰 복원 시도
-  restoreTokenFromCookie(request);
+  // DB에서 토큰 로드 및 인증 상태 확인
+  const authenticated = await isAuthenticatedAsync();
   
-  if (!isAuthenticated()) {
+  if (!authenticated) {
     return NextResponse.json(
       { error: '카페24 인증이 필요합니다.' },
       { status: 401 },

@@ -1,5 +1,7 @@
 // 카페24 OAuth 2.0 인증 모듈
 
+import { supabase } from '@/lib/supabase';
+
 // 환경변수 getter (런타임에 안전하게 접근)
 function getConfig() {
   const MALL_ID = process.env.CAFE24_MALL_ID;
@@ -18,8 +20,39 @@ function getConfig() {
   };
 }
 
-// 토큰 저장소 (서버 메모리 - MVP용, 프로덕션에서는 DB 사용)
-let tokenStore: TokenData | null = null;
+// 토큰 저장소 (메모리 캐시 + Supabase DB 영구 저장)
+let tokenCache: TokenData | null = null;
+
+// Supabase에서 토큰 로드
+async function loadTokenFromDB(): Promise<TokenData | null> {
+  try {
+    const { data, error } = await supabase
+      .from('shared_settings')
+      .select('value')
+      .eq('key', 'cafe24_token')
+      .single();
+    
+    if (error || !data) return null;
+    return data.value as TokenData;
+  } catch {
+    return null;
+  }
+}
+
+// Supabase에 토큰 저장
+async function saveTokenToDB(token: TokenData): Promise<void> {
+  try {
+    await supabase
+      .from('shared_settings')
+      .upsert({
+        key: 'cafe24_token',
+        value: token,
+        updated_at: new Date().toISOString(),
+      });
+  } catch (err) {
+    console.error('Failed to save token to DB:', err);
+  }
+}
 
 export interface TokenData {
   access_token: string;
@@ -94,13 +127,20 @@ export async function exchangeCodeForToken(
   }
 
   const data: Cafe24TokenResponse = await response.json();
-  tokenStore = data;
+  tokenCache = data;
+  // DB에도 저장 (영구 보관)
+  await saveTokenToDB(data);
   return data;
 }
 
 // Refresh Token으로 Access Token 갱신
 export async function refreshAccessToken(): Promise<TokenData> {
-  if (!tokenStore?.refresh_token) {
+  // 메모리 캐시에 없으면 DB에서 로드
+  if (!tokenCache) {
+    tokenCache = await loadTokenFromDB();
+  }
+  
+  if (!tokenCache?.refresh_token) {
     throw new Error('Refresh token이 없습니다. 재인증이 필요합니다.');
   }
 
@@ -115,7 +155,7 @@ export async function refreshAccessToken(): Promise<TokenData> {
     },
     body: new URLSearchParams({
       grant_type: 'refresh_token',
-      refresh_token: tokenStore.refresh_token,
+      refresh_token: tokenCache.refresh_token,
     }).toString(),
   });
 
@@ -125,45 +165,70 @@ export async function refreshAccessToken(): Promise<TokenData> {
   }
 
   const data: Cafe24TokenResponse = await response.json();
-  tokenStore = data;
+  tokenCache = data;
+  // DB에도 저장 (영구 보관)
+  await saveTokenToDB(data);
   return data;
 }
 
 // 유효한 Access Token 반환 (만료 시 자동 갱신)
 export async function getValidAccessToken(): Promise<string> {
-  if (!tokenStore) {
+  // 메모리 캐시에 없으면 DB에서 로드
+  if (!tokenCache) {
+    tokenCache = await loadTokenFromDB();
+  }
+  
+  if (!tokenCache) {
     throw new Error('인증이 필요합니다.');
   }
 
-  const expiresAt = new Date(tokenStore.expires_at);
+  const expiresAt = new Date(tokenCache.expires_at);
   const now = new Date();
   // 만료 5분 전에 갱신
   const bufferMs = 5 * 60 * 1000;
 
   if (now.getTime() + bufferMs >= expiresAt.getTime()) {
-    const refreshExpiresAt = new Date(tokenStore.refresh_token_expires_at);
+    const refreshExpiresAt = new Date(tokenCache.refresh_token_expires_at);
     if (now >= refreshExpiresAt) {
       throw new Error('Refresh token이 만료되었습니다. 재인증이 필요합니다.');
     }
     await refreshAccessToken();
   }
 
-  return tokenStore.access_token;
+  return tokenCache.access_token;
 }
 
 // 현재 토큰 데이터 조회
 export function getTokenStore(): TokenData | null {
-  return tokenStore;
+  return tokenCache;
 }
 
-// 토큰 저장 (외부에서 복원할 때 사용)
+// 토큰 저장 (외부에서 복원할 때 사용) - 메모리 캐시만 업데이트
 export function setTokenStore(data: TokenData): void {
-  tokenStore = data;
+  tokenCache = data;
 }
 
-// 인증 상태 확인
+// 토큰을 DB에서 로드해서 캐시에 저장
+export async function loadTokenFromDatabase(): Promise<boolean> {
+  tokenCache = await loadTokenFromDB();
+  return tokenCache !== null;
+}
+
+// 인증 상태 확인 (async로 변경 - DB 조회 필요)
+export async function isAuthenticatedAsync(): Promise<boolean> {
+  // 메모리 캐시에 없으면 DB에서 로드
+  if (!tokenCache) {
+    tokenCache = await loadTokenFromDB();
+  }
+  
+  if (!tokenCache) return false;
+  const refreshExpiresAt = new Date(tokenCache.refresh_token_expires_at);
+  return new Date() < refreshExpiresAt;
+}
+
+// 동기 인증 상태 확인 (메모리 캐시만 확인)
 export function isAuthenticated(): boolean {
-  if (!tokenStore) return false;
-  const refreshExpiresAt = new Date(tokenStore.refresh_token_expires_at);
+  if (!tokenCache) return false;
+  const refreshExpiresAt = new Date(tokenCache.refresh_token_expires_at);
   return new Date() < refreshExpiresAt;
 }

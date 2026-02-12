@@ -9,7 +9,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export type SettingsKey = 
   | 'pinned_products'      // 즐겨찾기 제품
   | 'brandiz_form'         // 브랜디즈 견적서 양식
-  | 'hotang_form';         // 호탱감탱 견적서 양식
+  | 'hotang_form'          // 호탱감탱 견적서 양식
+  | 'cafe24_token';        // Cafe24 OAuth 토큰
 
 export interface SharedSetting {
   key: SettingsKey;

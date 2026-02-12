@@ -2,24 +2,9 @@
 // GET /api/debug/addon-options
 
 import { NextRequest, NextResponse } from 'next/server';
-import { isAuthenticated, setTokenStore, type TokenData } from '@/lib/cafe24/auth';
+import { isAuthenticatedAsync } from '@/lib/cafe24/auth';
 import { fetchProductByCode, fetchProductWithDetails } from '@/lib/cafe24/products';
 import addonMappingData from '@/data/addon-mapping.json';
-
-// 쿠키에서 토큰 복원
-function restoreTokenFromCookie(request: NextRequest): boolean {
-  const tokenCookie = request.cookies.get('cafe24_token')?.value;
-  if (tokenCookie) {
-    try {
-      const tokenData: TokenData = JSON.parse(tokenCookie);
-      setTokenStore(tokenData);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-  return false;
-}
 
 interface AddonOptionInfo {
   productCode: string;
@@ -42,9 +27,10 @@ interface MainProductAddonInfo {
 }
 
 export async function GET(request: NextRequest) {
-  restoreTokenFromCookie(request);
+  // DB에서 토큰 로드 및 인증 상태 확인
+  const authenticated = await isAuthenticatedAsync();
   
-  if (!isAuthenticated()) {
+  if (!authenticated) {
     return NextResponse.json(
       { error: '카페24 인증이 필요합니다. 먼저 메인 페이지에서 인증해주세요.' },
       { status: 401 },
