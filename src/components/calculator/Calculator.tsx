@@ -184,8 +184,13 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const allRequiredSelected = requiredOptions.every(
     (o) => selectedOptions[o.option_name]
   );
-  // 메인상품 선택 + 필수옵션 충족 OR 추가상품만 선택해도 가능
-  const canAddMainProduct = selectedProduct && (requiredOptions.length === 0 || allRequiredSelected);
+  // 옵션이 있는 상품이면 필수옵션 선택 필요, 옵션 없는 상품이면 바로 추가 가능
+  // 옵션 로딩 중이거나 옵션이 있는데 필수옵션 미선택이면 메인상품 표시 안 함
+  const hasOptions = productOptions.length > 0;
+  const canAddMainProduct = selectedProduct && !loadingDetail && (
+    !hasOptions || // 옵션 없는 상품
+    (hasOptions && (requiredOptions.length === 0 || allRequiredSelected)) // 옵션 있는데 필수옵션 없거나 다 선택함
+  );
   const canAdd = canAddMainProduct || cafe24Addons.length > 0;
 
   return (
