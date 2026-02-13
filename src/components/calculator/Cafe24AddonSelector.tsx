@@ -42,6 +42,35 @@ export default function Cafe24AddonSelector({
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [inputQuantity, setInputQuantity] = useState<number>(1);
 
+  // 추가구성상품 옵션 품절 체크
+  function isAddonOptionSoldOut(optionValue: string): boolean {
+    if (productVariants.length === 0) return false;
+    
+    // 해당 옵션값을 포함하는 variant 찾기
+    const matchingVariants = productVariants.filter((variant) => {
+      if (!variant.options) return false;
+      return variant.options.some((o) => o.value === optionValue);
+    });
+    
+    // 디버그 로그
+    if (optionValue.includes('화이트실버') || optionValue.includes('D형')) {
+      console.log(`[AddonSelector 품절체크] "${optionValue}" 매칭 variants:`, matchingVariants.length);
+      console.log(`[AddonSelector 품절체크] 샘플:`, matchingVariants.slice(0, 3).map(v => ({
+        qty: v.quantity,
+        selling: v.selling,
+        opts: v.options
+      })));
+    }
+    
+    // 매칭되는 variant가 없으면 품절 아님
+    if (matchingVariants.length === 0) return false;
+    
+    // 모든 매칭 variant가 품절인지 확인
+    return matchingVariants.every(
+      (v) => v.quantity === 0 || v.selling === 'F'
+    );
+  }
+
   if (!additionalProducts || additionalProducts.length === 0) {
     return null;
   }
@@ -252,9 +281,14 @@ export default function Cafe24AddonSelector({
                             const amount = Number(opt.additional_amount) || 0;
                             const amountText = amount > 0 ? ` (+${amount.toLocaleString()}원)` : 
                                                amount < 0 ? ` (${amount.toLocaleString()}원)` : '';
+                            const isSoldOut = isAddonOptionSoldOut(opt.option_text);
                             return (
-                              <option key={opt.option_text} value={opt.option_text}>
-                                {opt.option_text}{amountText}
+                              <option 
+                                key={opt.option_text} 
+                                value={opt.option_text}
+                                disabled={isSoldOut}
+                              >
+                                {isSoldOut ? '[품절] ' : ''}{opt.option_text}{amountText}
                               </option>
                             );
                           })}
