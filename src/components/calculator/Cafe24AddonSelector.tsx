@@ -46,7 +46,7 @@ export default function Cafe24AddonSelector({
     return null;
   }
 
-  // 상품 클릭 → 옵션 로드
+  // 상품 클릭 → 옵션 로드 또는 자동 추가 (옵션 없으면)
   const handleProductClick = useCallback(async (product: Cafe24AdditionalProduct) => {
     // 이미 선택된 상품이면 닫기
     if (activeProduct?.product_code === product.product_code) {
@@ -55,12 +55,6 @@ export default function Cafe24AddonSelector({
       setProductVariants([]);
       return;
     }
-
-    setActiveProduct(product);
-    setSelectedOption('');
-    setInputQuantity(1);
-    setProductOptions([]);
-    setProductVariants([]);
 
     // 옵션 로드 (product_code로 API 호출)
     if (product.product_code) {
@@ -71,16 +65,47 @@ export default function Cafe24AddonSelector({
         });
         if (res.ok) {
           const data = await res.json();
-          setProductOptions(data.options || []);
-          setProductVariants(data.variants || []);
+          const options = data.options || [];
+          const variants = data.variants || [];
+          
+          // 옵션이 없으면 바로 자동 추가
+          if (options.length === 0 || (options[0]?.option_value?.length || 0) === 0) {
+            const newAddon: SelectedAddon = {
+              product,
+              quantity: 1,
+              selectedOption: undefined,
+              optionAdditionalAmount: 0,
+              optionCount: 0,
+            };
+            onAddonsChange([...selectedAddons, newAddon]);
+            setActiveProduct(null);
+            return;
+          }
+          
+          // 옵션이 있으면 패널 열기
+          setActiveProduct(product);
+          setSelectedOption('');
+          setInputQuantity(1);
+          setProductOptions(options);
+          setProductVariants(variants);
         }
       } catch (err) {
         console.error('옵션 로드 실패:', err);
       } finally {
         setLoadingOptions(false);
       }
+    } else {
+      // product_code 없으면 바로 추가
+      const newAddon: SelectedAddon = {
+        product,
+        quantity: 1,
+        selectedOption: undefined,
+        optionAdditionalAmount: 0,
+        optionCount: 0,
+      };
+      onAddonsChange([...selectedAddons, newAddon]);
     }
-  }, [activeProduct]);
+  }, [activeProduct, selectedAddons, onAddonsChange]);
 
   // 옵션 선택 시 추가금액 계산
   function getOptionAdditionalAmount(optionValue: string): number {
@@ -103,34 +128,28 @@ export default function Cafe24AddonSelector({
     return 0;
   }
 
-  // 리스트에 추가
-  function handleAddToList() {
-    if (!activeProduct) return;
+  // 옵션 선택 시 자동 추가
+  function handleOptionSelect(optionValue: string) {
+    if (!activeProduct || !optionValue) return;
     
-    // 옵션이 있는데 선택 안 했으면
-    if (productOptions.length > 0 && !selectedOption) {
-      alert('옵션을 선택해주세요.');
-      return;
-    }
-
-    const optionAmount = selectedOption ? getOptionAdditionalAmount(selectedOption) : 0;
-    
-    // 옵션 개수 계산 (첫번째 옵션의 값 개수)
+    const optionAmount = getOptionAdditionalAmount(optionValue);
     const optionCount = optionValues.length;
 
     const newAddon: SelectedAddon = {
       product: activeProduct,
-      quantity: inputQuantity,
-      selectedOption: selectedOption || undefined,
+      quantity: 1,
+      selectedOption: optionValue,
       optionAdditionalAmount: optionAmount,
       optionCount,
     };
 
     onAddonsChange([...selectedAddons, newAddon]);
     
-    // 입력 초기화
+    // 패널 닫기 (다른 상품 선택 가능하게)
+    setActiveProduct(null);
+    setProductOptions([]);
+    setProductVariants([]);
     setSelectedOption('');
-    setInputQuantity(1);
   }
 
   // 수량 변경
@@ -214,14 +233,18 @@ export default function Cafe24AddonSelector({
                     <p className="text-sm text-gray-500">옵션 불러오는 중...</p>
                   ) : optionValues.length > 0 ? (
                     <>
-                      {/* 옵션 드롭다운 */}
+                      {/* 옵션 드롭다운 - 선택하면 자동 추가 */}
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">
-                          옵션 선택 <span className="text-red-500">*</span>
+                          옵션 선택 <span className="text-gray-400">(선택 시 자동 추가)</span>
                         </label>
                         <select
-                          value={selectedOption}
-                          onChange={(e) => setSelectedOption(e.target.value)}
+                          value=""
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              handleOptionSelect(e.target.value);
+                            }
+                          }}
                           className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         >
                           <option value="">- 옵션을 선택해 주세요 -</option>
@@ -237,45 +260,10 @@ export default function Cafe24AddonSelector({
                           })}
                         </select>
                       </div>
-
-                      {/* 수량 + 추가 버튼 */}
-                      <div className="flex items-center gap-2">
-                        <label className="text-xs text-gray-600">수량:</label>
-                        <input
-                          type="number"
-                          value={inputQuantity}
-                          onChange={(e) => setInputQuantity(Math.max(1, Number(e.target.value)))}
-                          min={1}
-                          className="w-20 rounded border border-gray-300 px-2 py-1 text-sm text-center"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddToList}
-                          className="flex-1 rounded bg-blue-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-600"
-                        >
-                          추가
-                        </button>
-                      </div>
                     </>
                   ) : (
-                    /* 옵션 없는 상품 */
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs text-gray-600">수량:</label>
-                      <input
-                        type="number"
-                        value={inputQuantity}
-                        onChange={(e) => setInputQuantity(Math.max(1, Number(e.target.value)))}
-                        min={1}
-                        className="w-20 rounded border border-gray-300 px-2 py-1 text-sm text-center"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddToList}
-                        className="flex-1 rounded bg-blue-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-600"
-                      >
-                        추가
-                      </button>
-                    </div>
+                    /* 옵션 없는 상품은 클릭 시 자동 추가됨 - 여기 도달 안 함 */
+                    <p className="text-xs text-gray-500">옵션이 없는 상품입니다. (자동 추가됨)</p>
                   )}
                 </div>
               )}

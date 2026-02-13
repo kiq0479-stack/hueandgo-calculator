@@ -98,9 +98,72 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     }
   }, []);
 
-  // 옵션 변경 (additionalAmount는 이제 사용 안 함 - variants에서 계산)
+  // 옵션 변경 + 자동 추가 (모든 필수옵션 선택 시)
   function handleOptionChange(optionName: string, optionValue: string, _additionalAmount: string) {
-    setSelectedOptions((prev) => ({ ...prev, [optionName]: optionValue }));
+    const newSelectedOptions = { ...selectedOptions, [optionName]: optionValue };
+    setSelectedOptions(newSelectedOptions);
+    
+    // 모든 필수옵션이 선택되었는지 확인 → 자동 추가
+    const requiredOpts = productOptions.filter((o) => o.required_option === 'T');
+    const allSelected = requiredOpts.every((o) => newSelectedOptions[o.option_name]);
+    
+    if (allSelected && selectedProduct) {
+      // 약간의 딜레이 후 자동 추가 (state 업데이트 반영 대기)
+      setTimeout(() => {
+        autoAddToPreview(newSelectedOptions);
+      }, 50);
+    }
+  }
+  
+  // 자동 추가 함수 (옵션 선택 완료 시 호출)
+  function autoAddToPreview(options: Record<string, string>) {
+    if (!selectedProduct) return;
+    
+    // variants에서 매칭되는 것 찾기
+    const variant = variants.find((v) => {
+      if (!v.options) return false;
+      return Object.entries(options).every(([optName, optValue]) => {
+        const variantOpt = v.options.find((o) => o.name === optName);
+        return variantOpt && variantOpt.value === optValue;
+      });
+    });
+    
+    const optionExtra = variant ? Number(variant.additional_amount) : 0;
+    const price = basePrice + optionExtra;
+    
+    // 품명 생성
+    const optionStr = Object.values(options).join(' ');
+    let displayName = cleanMainProductName(selectedProduct.product_name);
+    const sizeMatch = optionStr.match(/(\d+)\s*mm/i);
+    if (sizeMatch) {
+      displayName = `${displayName} (${sizeMatch[1]}mm)`;
+    }
+    
+    const previewItem: PreviewItem = {
+      id: crypto.randomUUID(),
+      displayName,
+      selectedOptions: { ...options },
+      quantity: 1,
+      unitPrice: price,
+    };
+    
+    setPreviewItems(prev => [...prev, previewItem]);
+    
+    // 수량 옵션만 리셋 (다른 수량구간 추가 용이)
+    const quantityOptionName = productOptions.find(
+      (o) => o.option_name === '수량' || o.option_name.includes('수량')
+    )?.option_name;
+    
+    if (quantityOptionName) {
+      setSelectedOptions(prev => {
+        const newOptions = { ...prev };
+        delete newOptions[quantityOptionName];
+        return newOptions;
+      });
+    } else {
+      // 수량 옵션 없으면 전체 리셋
+      setSelectedOptions({});
+    }
   }
 
   // variants에서 선택된 옵션 조합에 해당하는 variant 찾기
@@ -382,34 +445,11 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
         />
       )}
 
-      {/* 현재 선택 + 리스트에 추가 버튼 */}
-      {canAddMainProduct && (
-        <div className="rounded-lg border-2 border-dashed border-blue-300 bg-blue-50/50 p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0 pr-3">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {selectedProduct.product_name}
-              </p>
-              {Object.keys(selectedOptions).length > 0 && (
-                <p className="text-xs text-gray-500 truncate">
-                  - {Object.values(selectedOptions).join(', ')}
-                </p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-blue-600">
-                {unitPrice.toLocaleString()}원
-              </span>
-              <button
-                type="button"
-                onClick={handleAddToPreview}
-                className="px-3 py-1.5 bg-blue-500 text-white text-xs font-semibold rounded hover:bg-blue-600"
-              >
-                + 추가
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* 자동 추가 안내 (옵션 선택하면 자동으로 추가됨) */}
+      {selectedProduct && !loadingDetail && productOptions.length > 0 && !hasQuantityOption && (
+        <p className="text-xs text-gray-500 text-center">
+          💡 옵션을 선택하면 자동으로 추가됩니다
+        </p>
       )}
 
       {/* 미리보기 리스트 + 추가구성상품 */}
