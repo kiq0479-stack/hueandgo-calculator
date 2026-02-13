@@ -10,6 +10,9 @@ import { TEMPLATES, getDefaultFormData, type QuoteFormData } from '@/lib/quote/t
 // 수동 입력 행 타입
 type ManualRow = { id: string; name: string; qty: number; price: number };
 
+// 호탱감탱 오버라이드 타입 (브랜디즈와 독립적으로 수정 가능)
+type HotangOverride = { quantity?: number; unitPrice?: number; name?: string };
+
 export default function Home() {
   const {
     items,
@@ -53,6 +56,15 @@ export default function Home() {
   const [hotangBizItem, setHotangBizItem] = useState('인형 및 장난감 제조업');
   const [hotangBizPhone, setHotangBizPhone] = useState('010-6255-7392');
   
+  // 호탱감탱 오버라이드 상태 (브랜디즈 원본과 독립적으로 수정 가능)
+  const [hotangOverrides, setHotangOverrides] = useState<Record<string, HotangOverride>>({});
+  
+  // 호탱감탱 수동 행 별도 관리 (브랜디즈와 독립)
+  const [hotangManualRows, setHotangManualRows] = useState<ManualRow[]>([]);
+  
+  // 호탱감탱에서 숨긴 아이템 (브랜디즈에는 남아있음)
+  const [hotangHiddenItems, setHotangHiddenItems] = useState<Set<string>>(new Set());
+  
   // 수동 행 추가
   const addManualRow = () => {
     setManualRows(prev => [...prev, { id: `manual-${Date.now()}`, name: '', qty: 1, price: 0 }]);
@@ -72,6 +84,54 @@ export default function Home() {
   const clearAllWithManual = () => {
     clearAll();
     setManualRows([]);
+  };
+  
+  // 호탱감탱 오버라이드 업데이트 (브랜디즈에 영향 없음)
+  const updateHotangQuantity = (id: string, quantity: number) => {
+    setHotangOverrides(prev => ({
+      ...prev,
+      [id]: { ...prev[id], quantity }
+    }));
+  };
+  
+  const updateHotangUnitPrice = (id: string, unitPrice: number) => {
+    setHotangOverrides(prev => ({
+      ...prev,
+      [id]: { ...prev[id], unitPrice }
+    }));
+  };
+  
+  const updateHotangName = (id: string, name: string) => {
+    setHotangOverrides(prev => ({
+      ...prev,
+      [id]: { ...prev[id], name }
+    }));
+  };
+  
+  // 호탱감탱 수동 행 핸들러
+  const addHotangManualRow = () => {
+    setHotangManualRows(prev => [...prev, { id: `hotang-manual-${Date.now()}`, name: '', qty: 1, price: 0 }]);
+  };
+  
+  const updateHotangManualRow = (id: string, field: keyof ManualRow, value: string | number) => {
+    setHotangManualRows(prev => prev.map(row => row.id === id ? { ...row, [field]: value } : row));
+  };
+  
+  const removeHotangManualRow = (id: string) => {
+    setHotangManualRows(prev => prev.filter(row => row.id !== id));
+  };
+  
+  // 호탱감탱 아이템 숨기기 (브랜디즈에는 남아있음)
+  const hideHotangItem = (id: string) => {
+    setHotangHiddenItems(prev => new Set([...prev, id]));
+  };
+  
+  // 호탱감탱 전체 삭제 (호탱감탱에서만 숨김, 브랜디즈는 유지)
+  const clearHotangAll = () => {
+    // 모든 아이템을 숨김 처리
+    setHotangHiddenItems(new Set(items.map(item => item.id)));
+    setHotangOverrides({});
+    setHotangManualRows([]);
   };
 
   return (
@@ -178,6 +238,18 @@ export default function Home() {
                 onHotangBizItemChange={setHotangBizItem}
                 hotangBizPhone={hotangBizPhone}
                 onHotangBizPhoneChange={setHotangBizPhone}
+                // 호탱감탱 독립 오버라이드
+                hotangOverrides={hotangOverrides}
+                onHotangUpdateQuantity={updateHotangQuantity}
+                onHotangUpdateUnitPrice={updateHotangUnitPrice}
+                onHotangUpdateName={updateHotangName}
+                hotangManualRows={hotangManualRows}
+                onAddHotangManualRow={addHotangManualRow}
+                onUpdateHotangManualRow={updateHotangManualRow}
+                onRemoveHotangManualRow={removeHotangManualRow}
+                onClearHotangAll={clearHotangAll}
+                hotangHiddenItems={hotangHiddenItems}
+                onHideHotangItem={hideHotangItem}
               />
             </section>
 
@@ -266,6 +338,18 @@ export default function Home() {
                 onHotangBizItemChange={setHotangBizItem}
                 hotangBizPhone={hotangBizPhone}
                 onHotangBizPhoneChange={setHotangBizPhone}
+                // 호탱감탱 독립 오버라이드
+                hotangOverrides={hotangOverrides}
+                onHotangUpdateQuantity={updateHotangQuantity}
+                onHotangUpdateUnitPrice={updateHotangUnitPrice}
+                onHotangUpdateName={updateHotangName}
+                hotangManualRows={hotangManualRows}
+                onAddHotangManualRow={addHotangManualRow}
+                onUpdateHotangManualRow={updateHotangManualRow}
+                onRemoveHotangManualRow={removeHotangManualRow}
+                onClearHotangAll={clearHotangAll}
+                hotangHiddenItems={hotangHiddenItems}
+                onHideHotangItem={hideHotangItem}
               />
             </section>
           </div>

@@ -64,6 +64,19 @@ interface QuoteItemListProps {
   onHotangBizItemChange?: (value: string) => void;
   hotangBizPhone?: string;
   onHotangBizPhoneChange?: (value: string) => void;
+  // 호탱감탱 독립 오버라이드 (브랜디즈에 영향 없이 수정)
+  hotangOverrides?: Record<string, { quantity?: number; unitPrice?: number; name?: string }>;
+  onHotangUpdateQuantity?: (id: string, quantity: number) => void;
+  onHotangUpdateUnitPrice?: (id: string, unitPrice: number) => void;
+  onHotangUpdateName?: (id: string, name: string) => void;
+  hotangManualRows?: ManualRow[];
+  onAddHotangManualRow?: () => void;
+  onUpdateHotangManualRow?: (id: string, field: keyof ManualRow, value: string | number) => void;
+  onRemoveHotangManualRow?: (id: string) => void;
+  onClearHotangAll?: () => void;
+  // 호탱감탱에서 숨긴 아이템 (브랜디즈에는 남아있음)
+  hotangHiddenItems?: Set<string>;
+  onHideHotangItem?: (id: string) => void;
 }
 
 // 오늘 날짜를 YYYY-MM-DD 형식으로 (input type="date"용)
@@ -185,6 +198,18 @@ export default function QuoteItemList({
   onHotangBizItemChange,
   hotangBizPhone,
   onHotangBizPhoneChange,
+  // 호탱감탱 독립 오버라이드
+  hotangOverrides,
+  onHotangUpdateQuantity,
+  onHotangUpdateUnitPrice,
+  onHotangUpdateName,
+  hotangManualRows,
+  onAddHotangManualRow,
+  onUpdateHotangManualRow,
+  onRemoveHotangManualRow,
+  onClearHotangAll,
+  hotangHiddenItems,
+  onHideHotangItem,
 }: QuoteItemListProps) {
   // 현재 선택된 템플릿 정보
   const currentTemplate = templateId === 'hotanggamtang' ? HOTANGGAMTANG : BRANDIZ;
@@ -322,23 +347,32 @@ export default function QuoteItemList({
 
   // 호탱감탱일 때는 별도 양식 사용 (공유 상태 전달)
   if (templateId === 'hotanggamtang') {
+    // 호탱감탱에서 숨긴 아이템 필터링
+    const visibleItems = hotangHiddenItems 
+      ? items.filter(item => !hotangHiddenItems.has(item.id))
+      : items;
+    
     return (
       <HotangQuoteForm
-        items={items}
+        items={visibleItems}
         totals={totals}
         documentType={documentType}
         discountRate={discountRate}
         truncation={truncation}
         onDiscountChange={onDiscountChange}
         onTruncationChange={onTruncationChange}
-        onClearAll={onClearAll}
-        onUpdateQuantity={onUpdateQuantity}
-        onUpdateUnitPrice={onUpdateUnitPrice}
-        // 공유 상태 (견적서/거래명세서 동기화)
-        manualRows={manualRows}
-        onAddManualRow={addManualRow}
-        onUpdateManualRow={updateManualRow}
-        onRemoveManualRow={removeManualRow}
+        onClearAll={onClearHotangAll ?? onClearAll}
+        onUpdateQuantity={onHotangUpdateQuantity ?? onUpdateQuantity}
+        onUpdateUnitPrice={onHotangUpdateUnitPrice ?? onUpdateUnitPrice}
+        // 호탱감탱 독립 오버라이드
+        hotangOverrides={hotangOverrides}
+        onUpdateName={onHotangUpdateName}
+        onRemoveItem={onHideHotangItem}
+        // 호탱감탱 전용 수동 행
+        manualRows={hotangManualRows ?? manualRows}
+        onAddManualRow={onAddHotangManualRow ?? addManualRow}
+        onUpdateManualRow={onUpdateHotangManualRow ?? updateManualRow}
+        onRemoveManualRow={onRemoveHotangManualRow ?? removeManualRow}
         quoteDate={quoteDate}
         onQuoteDateChange={setQuoteDate}
         recipient={recipient}

@@ -10,6 +10,9 @@ import { useSharedSettings, DEFAULT_HOTANG_FORM, type HotangFormSettings } from 
 // 수동 입력 행 타입
 type ManualRow = { id: string; name: string; qty: number; price: number };
 
+// 호탱감탱 오버라이드 타입 (브랜디즈와 독립적으로 수정 가능)
+type HotangOverride = { quantity?: number; unitPrice?: number; name?: string };
+
 interface HotangQuoteFormProps {
   items: QuoteItemType[];
   totals: QuoteTotals;
@@ -21,6 +24,10 @@ interface HotangQuoteFormProps {
   onClearAll?: () => void;
   onUpdateQuantity?: (id: string, quantity: number) => void;
   onUpdateUnitPrice?: (id: string, unitPrice: number) => void;
+  // 호탱감탱 독립 오버라이드 (브랜디즈에 영향 없이 수정)
+  hotangOverrides?: Record<string, HotangOverride>;
+  onUpdateName?: (id: string, name: string) => void;
+  onRemoveItem?: (id: string) => void; // 호탱감탱에서 아이템 숨기기
   // 공유 상태 (견적서/거래명세서 동기화)
   manualRows?: ManualRow[];
   onAddManualRow?: () => void;
@@ -99,15 +106,16 @@ function numberToKorean(num: number): string {
   return result;
 }
 
-// 품명 정리
-function formatProductName(name: string, selectedOption?: string): string {
+// 품명 정리 (호탱감탱용: 괄호 대신 - 사용)
+// Calculator에서 이미 품명에 사이즈가 추가되어 있으므로, 여기서는 형식만 변환
+function formatProductNameForHotang(name: string): string {
   let formatted = name.replace(/\s*\(파트너\s*전용\)\s*/gi, '').trim();
-  if (selectedOption) {
-    const sizeMatch = selectedOption.match(/(\d+)\s*mm/i);
-    if (sizeMatch) {
-      formatted = `${formatted} (${sizeMatch[1]}mm)`;
-    }
-  }
+  
+  // 기존 괄호 내용을 - 형식으로 변환
+  // 예: "아크릴 키링 (130mm)" → "아크릴 키링 - 130mm"
+  // 예: "하트 고리(로즈골드)" → "하트 고리 - 로즈골드"
+  formatted = formatted.replace(/\s*\(([^)]+)\)/g, ' - $1');
+  
   return formatted;
 }
 
@@ -124,6 +132,10 @@ export default function HotangQuoteForm({
   onClearAll,
   onUpdateQuantity,
   onUpdateUnitPrice,
+  // 호탱감탱 독립 오버라이드
+  hotangOverrides = {},
+  onUpdateName,
+  onRemoveItem,
   // 공유 상태 props
   manualRows: externalManualRows,
   onAddManualRow: externalAddManualRow,
@@ -248,9 +260,17 @@ export default function HotangQuoteForm({
   const previewId = documentType === 'invoice' ? 'invoice-preview' : 'quote-preview';
   const docTitle = documentType === 'invoice' ? '거 래 명 세 서' : '견 적 서';
 
+  // 호탱감탱 오버라이드 적용한 아이템 합계 계산
+  const itemsTotal = items.reduce((sum, item) => {
+    const override = hotangOverrides[item.id] || {};
+    const qty = override.quantity ?? item.quantity;
+    const price = override.unitPrice ?? item.unitPrice;
+    return sum + (qty * price);
+  }, 0);
+  
   // 수동 행 합계
   const manualTotal = manualRows.reduce((sum, row) => sum + (row.qty * row.price), 0);
-  const grandTotal = Math.round(totals.grandTotal) + manualTotal;
+  const grandTotal = Math.round(itemsTotal) + manualTotal;
 
   // 수동 행 추가/삭제 (props 우선, 없으면 내부 상태)
   const addManualRow = () => {
@@ -423,12 +443,17 @@ export default function HotangQuoteForm({
             </tr>
           </thead>
           <tbody>
-            {/* API 아이템 */}
+            {/* API 아이템 (호탱감탱 오버라이드 적용) */}
             {items.map((item, idx) => {
               const rowNum = idx + 1;
-              const optionStr = Object.values(item.selectedOptions || {}).join(' ');
-              const displayName = formatProductName(item.product.product_name, optionStr);
-              const itemTotal = item.unitPrice * item.quantity;
+              // Calculator에서 이미 사이즈 추가된 품명을 호탱감탱 형식(괄호→-)으로 변환
+              const originalName = formatProductNameForHotang(item.product.product_name);
+              // 호탱감탱 오버라이드 적용 (있으면 사용, 없으면 원본)
+              const override = hotangOverrides[item.id] || {};
+              const displayQuantity = override.quantity ?? item.quantity;
+              const displayUnitPrice = override.unitPrice ?? item.unitPrice;
+              const displayName = override.name ?? originalName;
+              const itemTotal = displayUnitPrice * displayQuantity;
               
               return (
                 <tr key={`item-${idx}`} className="border-b border-black group hover:bg-blue-50">
@@ -436,7 +461,7 @@ export default function HotangQuoteForm({
                   <td className="border-r border-black px-1 py-1 text-center">
                     <input
                       type="text"
-                      value={item.quantity.toLocaleString()}
+                      value={displayQuantity.toLocaleString()}
                       onChange={(e) => {
                         const num = Number(e.target.value.replace(/,/g, ''));
                         if (!isNaN(num) && onUpdateQuantity) onUpdateQuantity(item.id, Math.max(1, num));
@@ -445,11 +470,31 @@ export default function HotangQuoteForm({
                     />
                   </td>
                   <td className="border-r border-black px-1 py-1 text-center">EA</td>
-                  <td className="border-r border-black px-1 py-1">{displayName}</td>
+                  <td className="border-r border-black px-1 py-1">
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => {
+                          if (onUpdateName) onUpdateName(item.id, e.target.value);
+                        }}
+                        className="flex-1 bg-transparent border-0 focus:ring-1 focus:ring-blue-400 rounded text-[11px]"
+                      />
+                      {onRemoveItem && (
+                        <button
+                          type="button"
+                          onClick={() => onRemoveItem(item.id)}
+                          className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </td>
                   <td className="border-r border-black px-1 py-1">
                     <input
                       type="text"
-                      value={item.unitPrice.toLocaleString()}
+                      value={displayUnitPrice.toLocaleString()}
                       onChange={(e) => {
                         const num = Number(e.target.value.replace(/,/g, ''));
                         if (!isNaN(num) && onUpdateUnitPrice) onUpdateUnitPrice(item.id, Math.max(0, num));

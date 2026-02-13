@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import type { Cafe24Product, Cafe24ProductOption, Cafe24Variant, Cafe24AdditionalProduct } from '@/types/cafe24';
 import ProductSelector from './ProductSelector';
 import OptionSelector from './OptionSelector';
+import QuantityTierSelector, { type QuantityTierItem } from './QuantityTierSelector';
 import Cafe24AddonSelector, { type SelectedAddon } from './Cafe24AddonSelector';
 import { cleanAddonName, cleanMainProductName } from '@/lib/product-addon-mapping';
 
@@ -31,6 +32,15 @@ interface CalculatorProps {
   onAddToQuote?: (item: QuoteItem) => void;
 }
 
+// 미리보기 아이템 타입
+interface PreviewItem {
+  id: string;
+  displayName: string;
+  selectedOptions: Record<string, string>;
+  quantity: number;
+  unitPrice: number;
+}
+
 export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const [selectedProduct, setSelectedProduct] = useState<Cafe24Product | null>(null);
   const [productOptions, setProductOptions] = useState<Cafe24ProductOption[]>([]);
@@ -43,6 +53,9 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   const [quantity, setQuantity] = useState(1);
   const [cafe24Addons, setCafe24Addons] = useState<SelectedAddon[]>([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  
+  // 미리보기 리스트 (견적 추가 전 여러 개 쌓아놓기)
+  const [previewItems, setPreviewItems] = useState<PreviewItem[]>([]);
 
   // 제품 선택 시 상세정보 로드 (항상 옵션 조회 시도 - list API에 has_option 필드 없음)
   const handleProductSelect = useCallback(async (product: Cafe24Product) => {
@@ -51,6 +64,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     setOptionAmounts({});
     setQuantity(1);
     setCafe24Addons([]);
+    setPreviewItems([]); // 미리보기 리스트 초기화
     setOptionsApiError(null);
     setLoadingDetail(true);
 
@@ -118,28 +132,69 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   );
   // totalPrice, totalItemCount는 canAddMainProduct 정의 후 계산 (아래에서)
 
-  // 견적에 추가 (메인 상품 + 추가구성상품 각각 별도 행으로)
-  function handleAddToQuote() {
-    // 메인상품(필수옵션 충족)이나 추가상품 중 하나라도 있어야 함
-    if (!canAddMainProduct && cafe24Addons.length === 0) return;
+  // 미리보기 리스트에 추가 (메인 상품)
+  function handleAddToPreview() {
+    if (!canAddMainProduct || !selectedProduct) return;
+    
+    // 품명 생성
+    const optionStr = Object.values(selectedOptions).join(' ');
+    let displayName = cleanMainProductName(selectedProduct.product_name);
+    const sizeMatch = optionStr.match(/(\d+)\s*mm/i);
+    if (sizeMatch) {
+      displayName = `${displayName} (${sizeMatch[1]}mm)`;
+    }
+    
+    const previewItem: PreviewItem = {
+      id: crypto.randomUUID(),
+      displayName,
+      selectedOptions: { ...selectedOptions },
+      quantity,
+      unitPrice,
+    };
+    
+    setPreviewItems(prev => [...prev, previewItem]);
+    
+    // 수량 옵션만 리셋 (다른 수량구간 추가 용이)
+    const quantityOptionName = productOptions.find(
+      (o) => o.option_name === '수량' || o.option_name.includes('수량')
+    )?.option_name;
+    
+    if (quantityOptionName) {
+      setSelectedOptions(prev => {
+        const newOptions = { ...prev };
+        delete newOptions[quantityOptionName];
+        return newOptions;
+      });
+    }
+    setQuantity(1);
+  }
+  
+  // 미리보기 아이템 삭제
+  function handleRemovePreviewItem(id: string) {
+    setPreviewItems(prev => prev.filter(item => item.id !== id));
+  }
+  
+  // 미리보기 아이템 수량 변경
+  function handleUpdatePreviewQuantity(id: string, newQuantity: number) {
+    setPreviewItems(prev => prev.map(item => 
+      item.id === id ? { ...item, quantity: Math.max(1, newQuantity) } : item
+    ));
+  }
 
-    // 1. 메인 상품 추가 (필수옵션 충족한 경우에만)
-    if (canAddMainProduct && selectedProduct) {
-      // 메인상품명 정제: "(파트너 전용)" 제거 + 사이즈 옵션 추가
-      const optionStr = Object.values(selectedOptions).join(' ');
-      let displayName = cleanMainProductName(selectedProduct.product_name);
-      const sizeMatch = optionStr.match(/(\d+)\s*mm/i);
-      if (sizeMatch) {
-        displayName = `${displayName} (${sizeMatch[1]}mm)`;
-      }
-      
+  // 견적에 추가 (미리보기 리스트 + 추가구성상품)
+  function handleAddToQuote() {
+    if (previewItems.length === 0 && cafe24Addons.length === 0) return;
+    if (!selectedProduct) return;
+
+    // 1. 미리보기 리스트의 모든 아이템 추가
+    for (const preview of previewItems) {
       const mainItem: QuoteItem = {
         id: crypto.randomUUID(),
-        product: { ...selectedProduct, product_name: displayName },
-        selectedOptions: { ...selectedOptions },
-        optionAdditionalAmounts: { ...optionAmounts },
-        quantity,
-        unitPrice,
+        product: { ...selectedProduct, product_name: preview.displayName },
+        selectedOptions: preview.selectedOptions,
+        optionAdditionalAmounts: {},
+        quantity: preview.quantity,
+        unitPrice: preview.unitPrice,
         addons: [],
         cafe24Addons: [],
       };
@@ -152,22 +207,16 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
       const optionAmount = addon.optionAdditionalAmount || 0;
       const addonUnitPrice = addonBasePrice + optionAmount;
       
-      // 추가상품명 정제 규칙:
-      // - optionCount > 1 (옵션 2개 이상): 옵션 이름으로 표시
-      // - optionCount <= 1 (옵션 1개 또는 없음): 상품명에서 메인상품명, 괄호 안/뒤 내용 제거
       const optionCount = addon.optionCount || 0;
       const mainProductName = selectedProduct?.product_name || '';
       
       let productName: string;
       if (optionCount > 1 && addon.selectedOption) {
-        // 옵션 2개 이상: 선택한 옵션 이름으로 표시
         productName = addon.selectedOption;
       } else {
-        // 옵션 1개 또는 없음: 상품명 정제
         productName = cleanAddonName(addon.product.product_name, mainProductName);
       }
       
-      // addon.product를 Cafe24Product로 변환 (타입 단언 사용)
       const addonProduct = {
         ...(selectedProduct || {} as Cafe24Product),
         product_no: addon.product.product_no,
@@ -190,6 +239,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     }
 
     // 리셋
+    setPreviewItems([]);
     setSelectedOptions({});
     setOptionAmounts({});
     setQuantity(1);
@@ -203,17 +253,65 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   );
   // 옵션이 있는 상품이면 필수옵션 선택 필요, 옵션 없는 상품이면 바로 추가 가능
   // 옵션 로딩 중이거나 옵션이 있는데 필수옵션 미선택이면 메인상품 표시 안 함
+  // 수량 옵션이 있으면 QuantityTierSelector 사용하므로 이 UI는 숨김
   const hasOptions = productOptions.length > 0;
-  const canAddMainProduct = selectedProduct && !loadingDetail && (
+  const hasQuantityOption = productOptions.some(
+    (o) => o.option_name === '수량' || o.option_name.includes('수량')
+  );
+  const canAddMainProduct = selectedProduct && !loadingDetail && !hasQuantityOption && (
     !hasOptions || // 옵션 없는 상품
     (hasOptions && (requiredOptions.length === 0 || allRequiredSelected)) // 옵션 있는데 필수옵션 없거나 다 선택함
   );
-  const canAdd = canAddMainProduct || cafe24Addons.length > 0;
+  // 견적 추가 가능 여부: 미리보기 리스트나 추가구성상품이 있을 때
+  const canAdd = previewItems.length > 0 || cafe24Addons.length > 0;
+
+  // 수량 옵션 분리 (수량구간별 단가 비교용)
+  const quantityOption = productOptions.find(
+    (o) => o.option_name === '수량' || o.option_name.includes('수량')
+  );
+  const nonQuantityOptions = productOptions.filter(
+    (o) => o.option_name !== '수량' && !o.option_name.includes('수량')
+  );
   
-  // 총 금액/수량 계산 (canAddMainProduct 기준)
-  const mainProductTotal = canAddMainProduct ? unitPrice * quantity : 0;
-  const totalPrice = mainProductTotal + cafe24AddonTotal;
-  const totalItemCount = (canAddMainProduct ? 1 : 0) + cafe24Addons.length;
+  // 수량구간 표시 조건: 수량 외 필수옵션 모두 선택
+  const nonQuantityRequiredOptions = nonQuantityOptions.filter((o) => o.required_option === 'T');
+  const canShowQuantityTiers = quantityOption && (
+    nonQuantityRequiredOptions.length === 0 ||
+    nonQuantityRequiredOptions.every((o) => selectedOptions[o.option_name])
+  );
+
+  // 수량구간 미리보기 추가 핸들러
+  function handleAddTierToPreview(tier: QuantityTierItem) {
+    if (!selectedProduct) return;
+    
+    // 다른 옵션들 + 수량구간 옵션 합치기
+    const allOptions = {
+      ...selectedOptions,
+      [quantityOption?.option_name || '수량']: tier.optionText,
+    };
+    
+    // 표시 이름 생성
+    const optionTexts = Object.values(allOptions).filter(Boolean).join(', ');
+    const cleanedProductName = cleanMainProductName(selectedProduct.product_name);
+    const displayName = optionTexts 
+      ? `${cleanedProductName} (${optionTexts})`
+      : cleanedProductName;
+    
+    const previewItem: PreviewItem = {
+      id: crypto.randomUUID(),
+      displayName,
+      selectedOptions: allOptions,
+      quantity: tier.quantity,
+      unitPrice: tier.unitPrice,
+    };
+    
+    setPreviewItems(prev => [...prev, previewItem]);
+  }
+  
+  // 총 금액/수량 계산 (미리보기 리스트 기준)
+  const previewTotal = previewItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const totalPrice = previewTotal + cafe24AddonTotal;
+  const totalItemCount = previewItems.length + cafe24Addons.length;
 
   return (
     <div className="space-y-6">
@@ -254,12 +352,24 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
         </div>
       )}
 
-      {/* 옵션 선택 */}
-      {!loadingDetail && productOptions.length > 0 && (
+      {/* 옵션 선택 (수량 옵션 제외) */}
+      {!loadingDetail && nonQuantityOptions.length > 0 && (
         <OptionSelector
-          options={productOptions}
+          options={nonQuantityOptions}
+          variants={variants}
           selectedOptions={selectedOptions}
           onOptionChange={handleOptionChange}
+        />
+      )}
+
+      {/* 수량구간별 단가 비교 (수량 옵션이 있고, 다른 필수옵션 다 선택했을 때) */}
+      {!loadingDetail && quantityOption && canShowQuantityTiers && (
+        <QuantityTierSelector
+          productName={selectedProduct?.product_name || ''}
+          basePrice={basePrice}
+          quantityOption={quantityOption}
+          otherSelectedOptions={selectedOptions}
+          onAddToPreview={handleAddTierToPreview}
         />
       )}
 
@@ -272,75 +382,89 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
         />
       )}
 
-      {/* 가격 요약 - 상품별 리스트 형태 */}
-      {(canAddMainProduct || cafe24Addons.length > 0) && (
+      {/* 현재 선택 + 리스트에 추가 버튼 */}
+      {canAddMainProduct && (
+        <div className="rounded-lg border-2 border-dashed border-blue-300 bg-blue-50/50 p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0 pr-3">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {selectedProduct.product_name}
+              </p>
+              {Object.keys(selectedOptions).length > 0 && (
+                <p className="text-xs text-gray-500 truncate">
+                  - {Object.values(selectedOptions).join(', ')}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-blue-600">
+                {unitPrice.toLocaleString()}원
+              </span>
+              <button
+                type="button"
+                onClick={handleAddToPreview}
+                className="px-3 py-1.5 bg-blue-500 text-white text-xs font-semibold rounded hover:bg-blue-600"
+              >
+                + 추가
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 미리보기 리스트 + 추가구성상품 */}
+      {(previewItems.length > 0 || cafe24Addons.length > 0) && (
         <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-          {/* 메인 상품 (필수옵션 선택 완료 시에만 표시) */}
-          {canAddMainProduct && (
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          {/* 미리보기 리스트 (메인 상품들) */}
+          {previewItems.map((item) => (
+            <div key={item.id} className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <div className="flex-1 min-w-0 pr-4">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  {selectedProduct.product_name}
+                  {item.displayName}
                 </p>
-                {Object.keys(selectedOptions).length > 0 && (
-                  <p className="text-xs text-gray-500 truncate">
-                    - {Object.values(selectedOptions).join(', ')}
-                  </p>
-                )}
+                <p className="text-xs text-gray-500 truncate">
+                  - {Object.values(item.selectedOptions).join(', ')}
+                </p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center border border-gray-300 rounded w-[100px] justify-center">
                   <button
                     type="button"
-                    onClick={() => setQuantity(Math.max(0, quantity - 1))}
+                    onClick={() => handleUpdatePreviewQuantity(item.id, item.quantity - 1)}
                     className="px-2 py-1 text-gray-500 hover:bg-gray-100"
                   >
                     −
                   </button>
                   <input
                     type="text"
-                    value={quantity === 0 ? '' : quantity}
+                    value={item.quantity}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/,/g, '');
-                      if (val === '') {
-                        setQuantity(0);
-                        return;
-                      }
-                      const num = Number(val);
-                      if (!isNaN(num)) setQuantity(num);
+                      const num = Number(e.target.value.replace(/,/g, ''));
+                      if (!isNaN(num)) handleUpdatePreviewQuantity(item.id, num);
                     }}
                     className="w-[36px] text-center text-sm border-0 focus:ring-0 focus:outline-none bg-transparent"
                   />
                   <button
                     type="button"
-                    onClick={() => setQuantity(quantity + 1)}
+                    onClick={() => handleUpdatePreviewQuantity(item.id, item.quantity + 1)}
                     className="px-2 py-1 text-gray-500 hover:bg-gray-100"
                   >
                     +
                   </button>
                 </div>
                 <span className="text-sm font-medium w-20 text-right">
-                  {(unitPrice * quantity).toLocaleString()}원
+                  {(item.unitPrice * item.quantity).toLocaleString()}원
                 </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    // 메인상품만 삭제, 추가구성상품은 유지
-                    setSelectedProduct(null);
-                    setSelectedOptions({});
-                    setOptionAmounts({});
-                    setQuantity(1);
-                    setProductOptions([]);
-                    setVariants([]);
-                    // additionalProducts와 cafe24Addons는 유지
-                  }}
+                  onClick={() => handleRemovePreviewItem(item.id)}
                   className="text-gray-400 hover:text-red-500"
                 >
                   ×
                 </button>
               </div>
             </div>
-          )}
+          ))}
 
           {/* 추가구성상품 각각 */}
           {cafe24Addons.map((addon, index) => {
