@@ -83,6 +83,13 @@ export default function OptionSelector({
     }
   }
   
+  // 디버그: 각 옵션 정보 출력
+  console.log('[OptionSelector] 전체 옵션 목록:', options.map(o => ({
+    name: o.option_name,
+    valueCount: o.option_value?.length || 0,
+    required: o.required_option,
+  })));
+
   if (options.length === 0) {
     return null;
   }
@@ -90,6 +97,8 @@ export default function OptionSelector({
   return (
     <div className="space-y-4">
       <label className="block text-sm font-semibold text-gray-700">옵션 선택</label>
+      {/* 디버그: 옵션 개수 표시 */}
+      <p className="text-xs text-orange-500">[DEBUG] 옵션 {options.length}개: {options.map(o => `${o.option_name}(${o.option_value?.length || 0})`).join(', ')}</p>
 
       {options.map((option) => (
         <div key={option.option_code} className="space-y-1">
