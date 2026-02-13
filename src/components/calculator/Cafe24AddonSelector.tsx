@@ -52,16 +52,6 @@ export default function Cafe24AddonSelector({
       return variant.options.some((o) => o.value === optionValue);
     });
     
-    // 디버그 로그
-    if (optionValue.includes('화이트실버') || optionValue.includes('D형')) {
-      console.log(`[AddonSelector 품절체크] "${optionValue}" 매칭 variants:`, matchingVariants.length);
-      console.log(`[AddonSelector 품절체크] 샘플:`, matchingVariants.slice(0, 3).map(v => ({
-        qty: v.quantity,
-        selling: v.selling,
-        opts: v.options
-      })));
-    }
-    
     // 매칭되는 variant가 없으면 품절 아님
     if (matchingVariants.length === 0) return false;
     

@@ -39,16 +39,6 @@ function isOptionValueSoldOut(
     return true;
   });
   
-  // 디버그: "화이트실버" 포함된 옵션 체크
-  if (optionValue.includes('화이트실버')) {
-    console.log(`[품절체크] "${optionValue}" 매칭 variants:`, matchingVariants.length);
-    console.log(`[품절체크] 샘플:`, matchingVariants.slice(0, 3).map(v => ({
-      qty: v.quantity,
-      selling: v.selling,
-      opts: v.options
-    })));
-  }
-  
   // 매칭되는 variant가 없으면 품절 아님 (데이터 불완전)
   if (matchingVariants.length === 0) return false;
   
@@ -64,25 +54,6 @@ export default function OptionSelector({
   selectedOptions,
   onOptionChange,
 }: OptionSelectorProps) {
-  // 디버그: variants 데이터 구조 상세 확인
-  if (variants?.length > 0) {
-    const sample = variants[0];
-    console.log('[OptionSelector] variants 샘플:', {
-      variant_code: sample.variant_code,
-      quantity: sample.quantity,
-      selling: sample.selling,
-      options: sample.options,
-    });
-    // 품절인 variant 찾기
-    const soldOutVariants = variants.filter(v => v.quantity === 0 || v.selling === 'F');
-    console.log('[OptionSelector] 품절 variants:', soldOutVariants.length, '/', variants.length);
-    if (soldOutVariants.length > 0) {
-      console.log('[OptionSelector] 품절 샘플:', soldOutVariants.slice(0, 3).map(v => ({
-        qty: v.quantity, selling: v.selling, opts: v.options
-      })));
-    }
-  }
-  
   if (options.length === 0) {
     return null;
   }
@@ -121,11 +92,6 @@ export default function OptionSelector({
                 val.option_text,
                 selectedOptions
               );
-              
-              // 디버그: 품절 체크 결과
-              if (idx === 0) {
-                console.log(`[OptionSelector] ${option.option_name}="${val.option_text}" → soldOut=${isSoldOut}`);
-              }
               
               return (
                 <option 
