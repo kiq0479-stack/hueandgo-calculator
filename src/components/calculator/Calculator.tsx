@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 import type { Cafe24Product, Cafe24ProductOption, Cafe24Variant, Cafe24AdditionalProduct } from '@/types/cafe24';
 import ProductSelector from './ProductSelector';
 import OptionSelector from './OptionSelector';
-import QuantityTierSelector, { type QuantityTierItem } from './QuantityTierSelector';
 import Cafe24AddonSelector, { type SelectedAddon } from './Cafe24AddonSelector';
 import { cleanAddonName, cleanMainProductName } from '@/lib/product-addon-mapping';
 
@@ -315,61 +314,13 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     (o) => selectedOptions[o.option_name]
   );
   // 옵션이 있는 상품이면 필수옵션 선택 필요, 옵션 없는 상품이면 바로 추가 가능
-  // 옵션 로딩 중이거나 옵션이 있는데 필수옵션 미선택이면 메인상품 표시 안 함
-  // 수량 옵션이 있으면 QuantityTierSelector 사용하므로 이 UI는 숨김
   const hasOptions = productOptions.length > 0;
-  const hasQuantityOption = productOptions.some(
-    (o) => o.option_name === '수량' || o.option_name.includes('수량')
-  );
-  const canAddMainProduct = selectedProduct && !loadingDetail && !hasQuantityOption && (
+  const canAddMainProduct = selectedProduct && !loadingDetail && (
     !hasOptions || // 옵션 없는 상품
     (hasOptions && (requiredOptions.length === 0 || allRequiredSelected)) // 옵션 있는데 필수옵션 없거나 다 선택함
   );
   // 견적 추가 가능 여부: 미리보기 리스트나 추가구성상품이 있을 때
   const canAdd = previewItems.length > 0 || cafe24Addons.length > 0;
-
-  // 수량 옵션 분리 (수량구간별 단가 비교용)
-  const quantityOption = productOptions.find(
-    (o) => o.option_name === '수량' || o.option_name.includes('수량')
-  );
-  const nonQuantityOptions = productOptions.filter(
-    (o) => o.option_name !== '수량' && !o.option_name.includes('수량')
-  );
-  
-  // 수량구간 표시 조건: 수량 외 필수옵션 모두 선택
-  const nonQuantityRequiredOptions = nonQuantityOptions.filter((o) => o.required_option === 'T');
-  const canShowQuantityTiers = quantityOption && (
-    nonQuantityRequiredOptions.length === 0 ||
-    nonQuantityRequiredOptions.every((o) => selectedOptions[o.option_name])
-  );
-
-  // 수량구간 미리보기 추가 핸들러
-  function handleAddTierToPreview(tier: QuantityTierItem) {
-    if (!selectedProduct) return;
-    
-    // 다른 옵션들 + 수량구간 옵션 합치기
-    const allOptions = {
-      ...selectedOptions,
-      [quantityOption?.option_name || '수량']: tier.optionText,
-    };
-    
-    // 표시 이름 생성
-    const optionTexts = Object.values(allOptions).filter(Boolean).join(', ');
-    const cleanedProductName = cleanMainProductName(selectedProduct.product_name);
-    const displayName = optionTexts 
-      ? `${cleanedProductName} (${optionTexts})`
-      : cleanedProductName;
-    
-    const previewItem: PreviewItem = {
-      id: crypto.randomUUID(),
-      displayName,
-      selectedOptions: allOptions,
-      quantity: tier.quantity,
-      unitPrice: tier.unitPrice,
-    };
-    
-    setPreviewItems(prev => [...prev, previewItem]);
-  }
   
   // 총 금액/수량 계산 (미리보기 리스트 기준)
   const previewTotal = previewItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
@@ -415,24 +366,13 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
         </div>
       )}
 
-      {/* 옵션 선택 (수량 옵션 제외) */}
-      {!loadingDetail && nonQuantityOptions.length > 0 && (
+      {/* 옵션 선택 (전체 옵션) */}
+      {!loadingDetail && productOptions.length > 0 && (
         <OptionSelector
-          options={nonQuantityOptions}
+          options={productOptions}
           variants={variants}
           selectedOptions={selectedOptions}
           onOptionChange={handleOptionChange}
-        />
-      )}
-
-      {/* 수량구간별 단가 비교 (수량 옵션이 있고, 다른 필수옵션 다 선택했을 때) */}
-      {!loadingDetail && quantityOption && canShowQuantityTiers && (
-        <QuantityTierSelector
-          productName={selectedProduct?.product_name || ''}
-          basePrice={basePrice}
-          quantityOption={quantityOption}
-          otherSelectedOptions={selectedOptions}
-          onAddToPreview={handleAddTierToPreview}
         />
       )}
 
@@ -446,7 +386,7 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
       )}
 
       {/* 자동 추가 안내 (옵션 선택하면 자동으로 추가됨) */}
-      {selectedProduct && !loadingDetail && productOptions.length > 0 && !hasQuantityOption && (
+      {selectedProduct && !loadingDetail && productOptions.length > 0 && (
         <p className="text-xs text-gray-500 text-center">
           💡 옵션을 선택하면 자동으로 추가됩니다
         </p>
