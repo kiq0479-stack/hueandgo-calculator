@@ -1,6 +1,6 @@
 // 카페24 상품 API 클라이언트
 
-import { getValidAccessToken } from './auth';
+import { getValidAccessToken, refreshAccessToken, loadTokenFromDatabase } from './auth';
 import type {
   Cafe24Product,
   Cafe24ProductDetail,
@@ -22,13 +22,47 @@ function getBaseUrl(): string {
   return `https://${MALL_ID}.cafe24api.com/api/v2/admin`;
 }
 
-// 인증 헤더 생성
-async function getAuthHeaders(): Promise<Record<string, string>> {
+// 인증 헤더 생성 (forceRefresh: DB에서 다시 로드)
+async function getAuthHeaders(forceRefresh = false): Promise<Record<string, string>> {
+  if (forceRefresh) {
+    // 다른 인스턴스가 갱신했을 수 있으니 DB에서 다시 로드
+    await loadTokenFromDatabase();
+  }
   const token = await getValidAccessToken();
   return {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
   };
+}
+
+// API 호출 with 자동 재시도 (401 시 토큰 갱신 후 재시도)
+async function fetchWithRetry(url: string, options: RequestInit = {}): Promise<Response> {
+  const headers = await getAuthHeaders();
+  let response = await fetch(url, { ...options, headers });
+  
+  // 401 에러 시 토큰 갱신 후 재시도
+  if (response.status === 401) {
+    console.log('[Cafe24 API] 401 에러 - 토큰 갱신 시도...');
+    try {
+      // 먼저 DB에서 최신 토큰 로드 (다른 인스턴스가 갱신했을 수 있음)
+      await loadTokenFromDatabase();
+      let newHeaders = await getAuthHeaders();
+      response = await fetch(url, { ...options, headers: newHeaders });
+      
+      // 여전히 401이면 강제 refresh
+      if (response.status === 401) {
+        console.log('[Cafe24 API] 여전히 401 - 강제 refresh 시도...');
+        await refreshAccessToken();
+        newHeaders = await getAuthHeaders();
+        response = await fetch(url, { ...options, headers: newHeaders });
+      }
+    } catch (refreshError) {
+      console.error('[Cafe24 API] 토큰 갱신 실패:', refreshError);
+      // 원래 401 응답 반환 (재인증 필요 메시지 표시용)
+    }
+  }
+  
+  return response;
 }
 
 // 상품 목록 조회
@@ -38,7 +72,6 @@ export async function fetchProducts(params?: {
   display?: 'T' | 'F';
   selling?: 'T' | 'F';
 }): Promise<Cafe24Product[]> {
-  const headers = await getAuthHeaders();
   const BASE_URL = getBaseUrl();
 
   const query = new URLSearchParams();
@@ -48,7 +81,7 @@ export async function fetchProducts(params?: {
   if (params?.selling) query.set('selling', params.selling);
 
   const url = `${BASE_URL}/products${query.toString() ? '?' + query.toString() : ''}`;
-  const response = await fetch(url, { headers });
+  const response = await fetchWithRetry(url);
 
   if (!response.ok) {
     const error = await response.text();
@@ -61,11 +94,10 @@ export async function fetchProducts(params?: {
 
 // 상품 코드로 상품 번호 조회
 export async function fetchProductByCode(productCode: string): Promise<Cafe24Product | null> {
-  const headers = await getAuthHeaders();
   const BASE_URL = getBaseUrl();
 
   const url = `${BASE_URL}/products?product_code=${productCode}`;
-  const response = await fetch(url, { headers });
+  const response = await fetchWithRetry(url);
 
   if (!response.ok) {
     const error = await response.text();
@@ -82,7 +114,6 @@ export async function fetchProductDetail(
   productNo: number,
   embed?: string[],
 ): Promise<Cafe24ProductDetail> {
-  const headers = await getAuthHeaders();
   const BASE_URL = getBaseUrl();
 
   const query = new URLSearchParams();
@@ -94,7 +125,7 @@ export async function fetchProductDetail(
   query.set('embed', embedList.join(','));
 
   const url = `${BASE_URL}/products/${productNo}?${query.toString()}`;
-  const response = await fetch(url, { headers });
+  const response = await fetchWithRetry(url);
 
   if (!response.ok) {
     const error = await response.text();
@@ -109,7 +140,6 @@ export async function fetchProductDetail(
 export async function fetchProductVariants(
   productNo: number,
 ): Promise<Cafe24Variant[]> {
-  const headers = await getAuthHeaders();
   const BASE_URL = getBaseUrl();
 
   const allVariants: Cafe24Variant[] = [];
@@ -118,7 +148,7 @@ export async function fetchProductVariants(
 
   while (true) {
     const url = `${BASE_URL}/products/${productNo}/variants?limit=${limit}&offset=${offset}`;
-    const response = await fetch(url, { headers });
+    const response = await fetchWithRetry(url);
 
     if (!response.ok) {
       const error = await response.text();
@@ -144,14 +174,13 @@ export async function fetchProductVariants(
 export async function fetchAdditionalProducts(
   productNo: number,
 ): Promise<any[]> {
-  const headers = await getAuthHeaders();
   const BASE_URL = getBaseUrl();
 
   const url = `${BASE_URL}/products/${productNo}/additionalproducts`;
   console.log('[DEBUG] Fetching additionalproducts from:', url);
   
   try {
-    const response = await fetch(url, { headers });
+    const response = await fetchWithRetry(url);
 
     if (!response.ok) {
       const error = await response.text();
@@ -177,11 +206,10 @@ export async function fetchAdditionalProducts(
 export async function fetchProductOptions(
   productNo: number,
 ): Promise<Cafe24ProductOption[]> {
-  const headers = await getAuthHeaders();
   const BASE_URL = getBaseUrl();
 
   const url = `${BASE_URL}/products/${productNo}/options`;
-  const response = await fetch(url, { headers });
+  const response = await fetchWithRetry(url);
 
   if (!response.ok) {
     const error = await response.text();
