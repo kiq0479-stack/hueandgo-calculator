@@ -560,15 +560,14 @@ export default function HotangQuoteForm({
                 </tr>
               );
             })}
-            {/* 빈 행 */}
+            {/* 빈 행 - 품명 없으므로 EA도 표시 안 함 */}
             {Array.from({ length: Math.max(0, MAX_ROWS - items.length - manualRows.length) }).map((_, idx) => {
               const rowNum = items.length + manualRows.length + idx + 1;
-              const showEA = rowNum <= 6;
               return (
                 <tr key={`empty-${idx}`} className="border-b border-black">
                   <td className="border-r border-black px-1 py-1 text-center">{rowNum}</td>
                   <td className="border-r border-black px-1 py-1"></td>
-                  <td className="border-r border-black px-1 py-1 text-center">{showEA ? 'EA' : ''}</td>
+                  <td className="border-r border-black px-1 py-1 text-center"></td>
                   <td className="border-r border-black px-1 py-1"></td>
                   <td className="border-r border-black px-1 py-1"></td>
                   <td className="border-r border-black px-1 py-1 text-center">-</td>

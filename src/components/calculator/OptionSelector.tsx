@@ -43,8 +43,10 @@ function isOptionValueSoldOut(
   if (matchingVariants.length === 0) return false;
   
   // 모든 매칭 variant가 품절인지 확인
+  // 주의: quantity === 0은 "재고 관리 안 함" 설정일 수 있음
+  // selling === 'F' (판매중지)만 품절로 판단
   return matchingVariants.every(
-    (v) => v.quantity === 0 || v.selling === 'F'
+    (v) => v.selling === 'F'
   );
 }
 

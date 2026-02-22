@@ -691,15 +691,14 @@ export default function QuoteItemList({
                   </tr>
                 );
               })}
-              {/* 빈 행 (최소 9행까지 채우기) */}
+              {/* 빈 행 (최소 9행까지 채우기) - 품명 없으므로 EA도 표시 안 함 */}
               {Array.from({ length: Math.max(0, MAX_ROWS - totalItemCount) }).map((_, index) => {
                 const rowNum = totalItemCount + index + 1;
-                const showEA = rowNum <= 6;
                 return (
                   <tr key={`empty-${index}`}>
                     <td className="border-b border-r border-black px-1 py-1 text-center">{rowNum}</td>
                     <td className="border-b border-r border-black px-1 py-1"></td>
-                    <td className="border-b border-r border-black px-1 py-1 text-center">{showEA ? 'EA' : ''}</td>
+                    <td className="border-b border-r border-black px-1 py-1 text-center"></td>
                     <td className="border-b border-r border-black px-1 py-1"></td>
                     <td className="border-b border-r border-black px-1 py-1"></td>
                     <td className="border-b border-r border-black px-1 py-1 text-center">-</td>
