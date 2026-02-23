@@ -280,6 +280,7 @@ export async function downloadQuoteExcel({
   // 품목 행 (items + manualRows 합쳐서 처리)
   const MAX_ROWS = 9;
   const totalItemCount = items.length + manualRows.length;
+  const itemStartRow = row; // 수식 참조용
   
   for (let i = 0; i < MAX_ROWS; i++) {
     const rowNum = i + 1;
@@ -293,7 +294,6 @@ export async function downloadQuoteExcel({
       // Cafe24 API 항목
       const optionStr = Object.values(item.selectedOptions || {}).join(' ');
       const displayName = formatProductName(item.product.product_name, optionStr);
-      const itemTotal = item.unitPrice * item.quantity;
       
       dataRow.getCell(1).value = rowNum;
       dataRow.getCell(1).border = thinBorder;
@@ -321,7 +321,8 @@ export async function downloadQuoteExcel({
       dataRow.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
       dataRow.getCell(5).numFmt = '#,##0';
       
-      dataRow.getCell(6).value = itemTotal;
+      // 견적가 = 수량 × 단가 (수식)
+      dataRow.getCell(6).value = { formula: `D${row}*E${row}` };
       dataRow.getCell(6).border = thinBorder;
       dataRow.getCell(6).font = { size: 9 };
       dataRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
@@ -332,8 +333,6 @@ export async function downloadQuoteExcel({
       dataRow.getCell(7).font = { size: 9 };
     } else if (manualRow) {
       // 수동 입력 항목
-      const manualTotal = manualRow.qty * manualRow.price;
-      
       dataRow.getCell(1).value = rowNum;
       dataRow.getCell(1).border = thinBorder;
       dataRow.getCell(1).font = { size: 9 };
@@ -360,7 +359,8 @@ export async function downloadQuoteExcel({
       dataRow.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
       dataRow.getCell(5).numFmt = '#,##0';
       
-      dataRow.getCell(6).value = manualTotal;
+      // 견적가 = 수량 × 단가 (수식)
+      dataRow.getCell(6).value = { formula: `D${row}*E${row}` };
       dataRow.getCell(6).border = thinBorder;
       dataRow.getCell(6).font = { size: 9 };
       dataRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
@@ -371,20 +371,19 @@ export async function downloadQuoteExcel({
       dataRow.getCell(7).font = { size: 9 };
     } else {
       // 빈 행
-      const showEA = rowNum <= 6;
-      const values = [rowNum, '', showEA ? 'EA' : '', '', '', '-', ''];
+      const values = [rowNum, '', '', '', '', '', ''];
       values.forEach((v, idx) => {
         const cell = dataRow.getCell(idx + 1);
         cell.value = v;
         cell.border = thinBorder;
         cell.font = { size: 9 };
-        if (idx === 0 || idx === 2 || idx === 5) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        if (idx === 0 || idx === 2) cell.alignment = { horizontal: 'center', vertical: 'middle' };
       });
     }
     row++;
   }
 
-  // 합계 행
+  // 합계 행 - SUM 수식
   const sumRow = ws.getRow(row);
   ws.mergeCells(`A${row}:E${row}`);
   sumRow.getCell(1).value = '합 계';
@@ -392,12 +391,12 @@ export async function downloadQuoteExcel({
   sumRow.getCell(1).border = thinBorder;
   sumRow.getCell(1).fill = headerFill;
   sumRow.getCell(1).font = { bold: true, size: 9 };
-  // 합계 숫자 형식
-  sumRow.getCell(6).value = grandTotal > 0 ? grandTotal : '-';
+  // 합계 = SUM 수식
+  sumRow.getCell(6).value = { formula: `SUM(F${itemStartRow}:F${row - 1})` };
   sumRow.getCell(6).border = thinBorder;
   sumRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
   sumRow.getCell(6).font = { bold: true, size: 9 };
-  if (grandTotal > 0) sumRow.getCell(6).numFmt = '#,##0';
+  sumRow.getCell(6).numFmt = '#,##0';
   sumRow.getCell(7).value = '';
   sumRow.getCell(7).border = thinBorder;
   row += 2;
@@ -624,8 +623,9 @@ export async function downloadHotangQuoteExcel({
   });
   row++;
 
-  // 품목 행 (items + manualRows)
+  // 품목 행 (items + manualRows) - 호탱감탱: A(No), B(수량), C(규격), D(품명), E(단가), F(견적가)
   const MAX_ROWS = 9;
+  const itemStartRow = row; // 수식 참조용
   
   for (let i = 0; i < MAX_ROWS; i++) {
     const rowNum = i + 1;
@@ -637,9 +637,7 @@ export async function downloadHotangQuoteExcel({
     if (item) {
       const optionStr = Object.values(item.selectedOptions || {}).join(' ');
       const displayName = formatProductName(item.product.product_name, optionStr);
-      const itemTotal = item.unitPrice * item.quantity;
       
-      // 호탱감탱 순서: No, 수량, 규격, 품명, 단가, 견적가, 비고
       dataRow.getCell(1).value = rowNum;
       dataRow.getCell(1).border = thinBorder;
       dataRow.getCell(1).font = { size: 9 };
@@ -666,7 +664,8 @@ export async function downloadHotangQuoteExcel({
       dataRow.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
       dataRow.getCell(5).numFmt = '#,##0';
       
-      dataRow.getCell(6).value = itemTotal;
+      // 견적가 = 수량(B) × 단가(E) (수식)
+      dataRow.getCell(6).value = { formula: `B${row}*E${row}` };
       dataRow.getCell(6).border = thinBorder;
       dataRow.getCell(6).font = { size: 9 };
       dataRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
@@ -676,8 +675,6 @@ export async function downloadHotangQuoteExcel({
       dataRow.getCell(7).border = thinBorder;
       dataRow.getCell(7).font = { size: 9 };
     } else if (manualRow) {
-      const manualItemTotal = manualRow.qty * manualRow.price;
-      
       dataRow.getCell(1).value = rowNum;
       dataRow.getCell(1).border = thinBorder;
       dataRow.getCell(1).font = { size: 9 };
@@ -704,7 +701,8 @@ export async function downloadHotangQuoteExcel({
       dataRow.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
       dataRow.getCell(5).numFmt = '#,##0';
       
-      dataRow.getCell(6).value = manualItemTotal;
+      // 견적가 = 수량(B) × 단가(E) (수식)
+      dataRow.getCell(6).value = { formula: `B${row}*E${row}` };
       dataRow.getCell(6).border = thinBorder;
       dataRow.getCell(6).font = { size: 9 };
       dataRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
@@ -714,22 +712,20 @@ export async function downloadHotangQuoteExcel({
       dataRow.getCell(7).border = thinBorder;
       dataRow.getCell(7).font = { size: 9 };
     } else {
-      // 빈 행
-      const showEA = rowNum <= 6;
-      // 호탱감탱 순서: No, 수량, 규격, 품명, 단가, 견적가, 비고
-      const values = [rowNum, '', showEA ? 'EA' : '', '', '', '-', ''];
+      // 빈 행 - EA 표시 안 함
+      const values = [rowNum, '', '', '', '', '', ''];
       values.forEach((v, idx) => {
         const cell = dataRow.getCell(idx + 1);
         cell.value = v;
         cell.border = thinBorder;
         cell.font = { size: 9 };
-        if (idx === 0 || idx === 1 || idx === 2 || idx === 5) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        if (idx === 0 || idx === 1 || idx === 2) cell.alignment = { horizontal: 'center', vertical: 'middle' };
       });
     }
     row++;
   }
 
-  // 합계 행
+  // 합계 행 - SUM 수식
   const sumRow = ws.getRow(row);
   ws.mergeCells(`A${row}:E${row}`);
   sumRow.getCell(1).value = '합 계';
@@ -738,11 +734,11 @@ export async function downloadHotangQuoteExcel({
   sumRow.getCell(1).fill = headerFill;
   sumRow.getCell(1).font = { bold: true, size: 9 };
   
-  sumRow.getCell(6).value = grandTotal > 0 ? grandTotal : '-';
+  sumRow.getCell(6).value = { formula: `SUM(F${itemStartRow}:F${row - 1})` };
   sumRow.getCell(6).border = thinBorder;
   sumRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
   sumRow.getCell(6).font = { bold: true, size: 9 };
-  if (grandTotal > 0) sumRow.getCell(6).numFmt = '#,##0';
+  sumRow.getCell(6).numFmt = '#,##0';
   
   sumRow.getCell(7).value = '';
   sumRow.getCell(7).border = thinBorder;
