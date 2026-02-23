@@ -252,16 +252,20 @@ export async function downloadQuoteExcel({
   ws.getCell(`A${row}`).font = { size: 8 };
   
   ws.mergeCells(`B${row}:D${row + 1}`);
+  // 한글 금액 - 나중에 수식으로 업데이트 (임시값)
   ws.getCell(`B${row}`).value = `${numberToKorean(grandTotal)} 원정`;
   ws.getCell(`B${row}`).alignment = { horizontal: 'center', vertical: 'middle' };
   ws.getCell(`B${row}`).border = thinBorder;
   ws.getCell(`B${row}`).font = { size: 12 };
+  const grandTotalTextRow = row; // 나중에 NUMBERSTRING 수식 업데이트용
   
   ws.mergeCells(`E${row}:G${row + 1}`);
+  // ₩금액 - 나중에 수식으로 업데이트 (임시값)
   ws.getCell(`E${row}`).value = `(₩${grandTotal.toLocaleString()})`;
   ws.getCell(`E${row}`).alignment = { horizontal: 'center', vertical: 'middle' };
   ws.getCell(`E${row}`).border = thinBorder;
   ws.getCell(`E${row}`).font = { size: 12 };
+  const grandTotalNumRow = row; // 나중에 SUM 참조 수식 업데이트용
   row += 3;
 
   // 품목 테이블 헤더
@@ -392,6 +396,7 @@ export async function downloadQuoteExcel({
   sumRow.getCell(1).fill = headerFill;
   sumRow.getCell(1).font = { bold: true, size: 9 };
   // 합계 = SUM 수식
+  const sumRowNum = row;
   sumRow.getCell(6).value = { formula: `SUM(F${itemStartRow}:F${row - 1})` };
   sumRow.getCell(6).border = thinBorder;
   sumRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
@@ -399,6 +404,13 @@ export async function downloadQuoteExcel({
   sumRow.getCell(6).numFmt = '#,##0';
   sumRow.getCell(7).value = '';
   sumRow.getCell(7).border = thinBorder;
+
+  // 합계금액 셀 수식 업데이트 (합계 행 번호 확정됐으므로)
+  // 한글 원정: NUMBERSTRING (한국 Excel 지원)
+  ws.getCell(`B${grandTotalTextRow}`).value = { formula: `NUMBERSTRING(F${sumRowNum},1)&" 원정"` };
+  // ₩금액: TEXT 함수로 형식 적용
+  ws.getCell(`E${grandTotalNumRow}`).value = { formula: `"(₩"&TEXT(F${sumRowNum},"#,##0")&")"` };
+
   row += 2;
 
   // MEMO
@@ -598,16 +610,20 @@ export async function downloadHotangQuoteExcel({
   ws.getCell(`A${row}`).font = { size: 8 };
   
   ws.mergeCells(`B${row}:E${row}`);
+  // 한글 금액 - 나중에 수식으로 업데이트 (임시값)
   ws.getCell(`B${row}`).value = `${numberToKorean(grandTotal)} 원정`;
   ws.getCell(`B${row}`).alignment = { horizontal: 'center', vertical: 'middle' };
   ws.getCell(`B${row}`).border = thinBorder;
   ws.getCell(`B${row}`).font = { size: 11 };
+  const grandTotalTextRow = row;
   
   ws.mergeCells(`F${row}:G${row}`);
+  // ₩금액 - 나중에 수식으로 업데이트 (임시값)
   ws.getCell(`F${row}`).value = `(₩${grandTotal.toLocaleString()})`;
   ws.getCell(`F${row}`).alignment = { horizontal: 'center', vertical: 'middle' };
   ws.getCell(`F${row}`).border = thinBorder;
   ws.getCell(`F${row}`).font = { size: 11 };
+  const grandTotalNumRow = row;
   row++;
 
   // 품목 테이블 헤더 - 호탱감탱 순서: No, 수량, 규격, 품명, 단가, 견적가, 비고
@@ -734,6 +750,7 @@ export async function downloadHotangQuoteExcel({
   sumRow.getCell(1).fill = headerFill;
   sumRow.getCell(1).font = { bold: true, size: 9 };
   
+  const sumRowNum = row;
   sumRow.getCell(6).value = { formula: `SUM(F${itemStartRow}:F${row - 1})` };
   sumRow.getCell(6).border = thinBorder;
   sumRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
@@ -742,6 +759,11 @@ export async function downloadHotangQuoteExcel({
   
   sumRow.getCell(7).value = '';
   sumRow.getCell(7).border = thinBorder;
+
+  // 합계금액 셀 수식 업데이트 (호탱감탱: B=한글, F=₩금액)
+  ws.getCell(`B${grandTotalTextRow}`).value = { formula: `NUMBERSTRING(F${sumRowNum},1)&" 원정"` };
+  ws.getCell(`F${grandTotalNumRow}`).value = { formula: `"(₩"&TEXT(F${sumRowNum},"#,##0")&")"` };
+
   row += 2;
 
   // MEMO
