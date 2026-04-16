@@ -57,7 +57,8 @@ function formatProductName(name: string, selectedOption?: string): string {
   let formatted = name.replace(/\s*\(파트너\s*전용\)\s*/gi, '').trim();
   if (selectedOption) {
     const sizeMatch = selectedOption.match(/(\d+)\s*mm/i);
-    if (sizeMatch) {
+    // 이미 품명에 (Nmm)이 포함되면 재추가 금지 (Calculator.tsx에서 이미 붙여둠)
+    if (sizeMatch && !new RegExp(`\\(\\s*${sizeMatch[1]}\\s*mm\\s*\\)`, 'i').test(formatted)) {
       formatted = `${formatted} (${sizeMatch[1]}mm)`;
     }
   }

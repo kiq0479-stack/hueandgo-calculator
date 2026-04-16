@@ -108,18 +108,24 @@ export default function ExportButtons({
     setDownloading('excel');
     try {
       const fileName = generateFileName();
+      // 수신/날짜는 QuoteItemList의 독립 state에 저장되어 formData와 분리되어 있음 → DOM에서 읽어 동기화
+      const effectiveFormData: QuoteFormData = {
+        ...formData,
+        recipient: getRecipientFromDOM() || formData.recipient,
+        date: getDateFromDOM() || formData.date,
+      };
       if (documentType === 'quote') {
         // 호탱감탱은 별도 양식 사용
         if (formData.templateId === 'hotanggamtang') {
           const { downloadHotangQuoteExcel } = await import('@/lib/excel/generator');
-          await downloadHotangQuoteExcel({ items, totals, formData, fileName, manualRows });
+          await downloadHotangQuoteExcel({ items, totals, formData: effectiveFormData, fileName, manualRows });
         } else {
           const { downloadQuoteExcel } = await import('@/lib/excel/generator');
-          await downloadQuoteExcel({ items, totals, formData, fileName, manualRows });
+          await downloadQuoteExcel({ items, totals, formData: effectiveFormData, fileName, manualRows });
         }
       } else {
         const { downloadInvoiceExcel } = await import('@/lib/excel/generator');
-        await downloadInvoiceExcel({ items, totals, formData, fileName, manualRows });
+        await downloadInvoiceExcel({ items, totals, formData: effectiveFormData, fileName, manualRows });
       }
     } catch (err) {
       console.error('엑셀 다운로드 실패:', err);
