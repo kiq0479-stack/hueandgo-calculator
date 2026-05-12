@@ -5,7 +5,8 @@ import type { Cafe24Product, Cafe24ProductOption, Cafe24Variant, Cafe24Additiona
 import ProductSelector from './ProductSelector';
 import OptionSelector from './OptionSelector';
 import Cafe24AddonSelector, { type SelectedAddon } from './Cafe24AddonSelector';
-import { cleanAddonName, cleanMainProductName } from '@/lib/product-addon-mapping';
+import { cleanAddonName } from '@/lib/product-addon-mapping';
+import { buildDisplayName } from '@/lib/quote/display-name';
 
 // AddonItem은 이제 사용 안 함 (수동 추가상품 제거)
 export interface AddonItem {
@@ -129,15 +130,9 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
     
     const optionExtra = variant ? Number(variant.additional_amount) : 0;
     const price = basePrice + optionExtra;
-    
-    // 품명 생성
-    const optionStr = Object.values(options).join(' ');
-    let displayName = cleanMainProductName(selectedProduct.product_name);
-    const sizeMatch = optionStr.match(/(\d+)\s*mm/i);
-    if (sizeMatch) {
-      displayName = `${displayName} (${sizeMatch[1]}mm)`;
-    }
-    
+
+    const displayName = buildDisplayName(selectedProduct.product_name, options);
+
     const previewItem: PreviewItem = {
       id: crypto.randomUUID(),
       displayName,
@@ -197,15 +192,9 @@ export default function Calculator({ onAddToQuote }: CalculatorProps) {
   // 미리보기 리스트에 추가 (메인 상품)
   function handleAddToPreview() {
     if (!canAddMainProduct || !selectedProduct) return;
-    
-    // 품명 생성
-    const optionStr = Object.values(selectedOptions).join(' ');
-    let displayName = cleanMainProductName(selectedProduct.product_name);
-    const sizeMatch = optionStr.match(/(\d+)\s*mm/i);
-    if (sizeMatch) {
-      displayName = `${displayName} (${sizeMatch[1]}mm)`;
-    }
-    
+
+    const displayName = buildDisplayName(selectedProduct.product_name, selectedOptions);
+
     const previewItem: PreviewItem = {
       id: crypto.randomUUID(),
       displayName,
