@@ -8,6 +8,7 @@ import { cleanMainProductName } from '@/lib/product-addon-mapping';
 // 운영하면서 패턴 보이면 추가
 export const PREFIX_OPTION_NAMES = [
   '아크릴 종류',
+  '집게 종류',
 ] as const;
 
 // prefix에서 제외할 옵션값 패턴 (이벤트성/행사성 옵션값)
