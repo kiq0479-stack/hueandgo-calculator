@@ -523,8 +523,10 @@ export default function QuoteItemList({
           </div>
         </div>
         
-        {/* Row: 아래와 같이 견적합니다 */}
-        <div className="px-2 py-2">아래와 같이 견적합니다</div>
+        {/* Row: 결언 멘트 (문서 타입별) */}
+        <div className="px-2 py-2">
+          {documentType === 'invoice' ? '아래와 같이 계산합니다' : '아래와 같이 견적합니다'}
+        </div>
         
         {/* Row: 빈 줄 */}
         <div className="h-1"></div>

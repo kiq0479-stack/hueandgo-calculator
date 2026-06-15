@@ -883,6 +883,12 @@ export async function downloadInvoiceExcel({
   ws.getCell(`B${row}`).font = { size: 9 };
   row += 2;
 
+  // 아래와 같이 계산합니다
+  ws.mergeCells(`A${row}:I${row}`);
+  ws.getCell(`A${row}`).value = '아래와 같이 계산합니다.';
+  ws.getCell(`A${row}`).font = { size: 10 };
+  row += 2;
+
   // 항목 테이블 헤더
   const headers = ['No', '월일', '품명', '규격', '수량', '단가', '공급가액', '세액', '비고'];
   const headerRow = ws.getRow(row);

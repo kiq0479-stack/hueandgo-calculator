@@ -321,12 +321,16 @@ export default function HotangQuoteForm({
               onChange={(e) => setDescLine1(e.target.value)}
               className="mb-1 bg-transparent border-0 focus:outline-none text-[11px] w-full"
             />
-            <input
-              type="text"
-              value={descLine2}
-              onChange={(e) => setDescLine2(e.target.value)}
-              className="mb-1 bg-transparent border-0 focus:outline-none text-[11px] w-full"
-            />
+            {documentType === 'invoice' ? (
+              <div className="mb-1 text-[11px] w-full">아래와 같이 계산합니다.</div>
+            ) : (
+              <input
+                type="text"
+                value={descLine2}
+                onChange={(e) => setDescLine2(e.target.value)}
+                className="mb-1 bg-transparent border-0 focus:outline-none text-[11px] w-full"
+              />
+            )}
             <div className="mb-2 relative cursor-pointer" style={{ width: 'fit-content' }}>
               <span className="pointer-events-none">{formatDateKorean(quoteDate)}</span>
               <input
