@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { QuoteItem as QuoteItemType } from '@/components/calculator/Calculator';
 import type { QuoteTotals, TruncationType } from '@/hooks/useQuote';
-import { calcItemTotal } from '@/hooks/useQuote';
+import { calcItemDisplayTotal, getDisplayUnitPrice } from '@/hooks/useQuote';
 import DiscountControl from './DiscountControl';
 import { getTemplateById, BRANDIZ, HOTANGGAMTANG } from '@/lib/quote/templates';
 import HotangQuoteForm from './HotangQuoteForm';
@@ -567,7 +567,8 @@ export default function QuoteItemList({
               {/* API 아이템 */}
               {items.map((item, index) => {
                 const rowNum = index + 1;
-                const itemTotal = calcItemTotal(item);
+                const displayUnitPrice = getDisplayUnitPrice(item.unitPrice, discountRate);
+                const itemTotal = calcItemDisplayTotal(item, discountRate);
                 const itemTotalWithVat = Math.round(itemTotal);
                 // 품명은 이미 Calculator에서 정제되어 저장됨 (formatProductName 불필요)
                 const displayName = item.product.product_name;
@@ -618,7 +619,7 @@ export default function QuoteItemList({
                     <td className="border-b border-r border-black px-0.5 py-1">
                       <input
                         type="text"
-                        value={item.unitPrice.toLocaleString()}
+                        value={displayUnitPrice.toLocaleString()}
                         onChange={(e) => {
                           const num = Number(e.target.value.replace(/,/g, ''));
                           if (!isNaN(num)) onUpdateUnitPrice(item.id, Math.max(0, num));

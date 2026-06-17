@@ -261,10 +261,11 @@ export default function HotangQuoteForm({
   const docTitle = documentType === 'invoice' ? '거 래 명 세 서' : '견 적 서';
 
   // 호탱감탱 오버라이드 적용한 아이템 합계 계산
+  // 오버라이드 단가는 그대로(사용자 직접 정한 값), 없으면 할인 적용한 원본 단가
   const itemsTotal = items.reduce((sum, item) => {
     const override = hotangOverrides[item.id] || {};
     const qty = override.quantity ?? item.quantity;
-    const price = override.unitPrice ?? item.unitPrice;
+    const price = override.unitPrice ?? Math.round(item.unitPrice * (1 - discountRate / 100));
     return sum + (qty * price);
   }, 0);
   
@@ -455,7 +456,8 @@ export default function HotangQuoteForm({
               // 호탱감탱 오버라이드 적용 (있으면 사용, 없으면 원본)
               const override = hotangOverrides[item.id] || {};
               const displayQuantity = override.quantity ?? item.quantity;
-              const displayUnitPrice = override.unitPrice ?? item.unitPrice;
+              // 오버라이드 단가는 그대로, 없으면 할인 적용한 원본
+              const displayUnitPrice = override.unitPrice ?? Math.round(item.unitPrice * (1 - discountRate / 100));
               const displayName = override.name ?? originalName;
               const itemTotal = displayUnitPrice * displayQuantity;
               

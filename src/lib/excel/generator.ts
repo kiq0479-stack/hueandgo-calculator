@@ -320,12 +320,13 @@ export async function downloadQuoteExcel({
       dataRow.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
       dataRow.getCell(4).numFmt = '#,##0';
       
-      dataRow.getCell(5).value = item.unitPrice;
+      // 단가: 할인 적용된 표시 단가
+      dataRow.getCell(5).value = Math.round(item.unitPrice * (1 - totals.discountRate / 100));
       dataRow.getCell(5).border = thinBorder;
       dataRow.getCell(5).font = { size: 9 };
       dataRow.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
       dataRow.getCell(5).numFmt = '#,##0';
-      
+
       // 견적가 = 수량 × 단가 (수식)
       dataRow.getCell(6).value = { formula: `D${row}*E${row}` };
       dataRow.getCell(6).border = thinBorder;
@@ -675,12 +676,13 @@ export async function downloadHotangQuoteExcel({
       dataRow.getCell(4).border = thinBorder;
       dataRow.getCell(4).font = { size: 9 };
       
-      dataRow.getCell(5).value = item.unitPrice;
+      // 단가: 할인 적용된 표시 단가
+      dataRow.getCell(5).value = Math.round(item.unitPrice * (1 - totals.discountRate / 100));
       dataRow.getCell(5).border = thinBorder;
       dataRow.getCell(5).font = { size: 9 };
       dataRow.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
       dataRow.getCell(5).numFmt = '#,##0';
-      
+
       // 견적가 = 수량(B) × 단가(E) (수식)
       dataRow.getCell(6).value = { formula: `B${row}*E${row}` };
       dataRow.getCell(6).border = thinBorder;
@@ -911,7 +913,9 @@ export async function downloadInvoiceExcel({
       .map(([, v]) => v)
       .join(', ');
 
-    const itemTotal = item.unitPrice * item.quantity;
+    // 단가: 할인 적용된 표시 단가
+    const displayUnitPrice = Math.round(item.unitPrice * (1 - totals.discountRate / 100));
+    const itemTotal = displayUnitPrice * item.quantity;
     const itemSupply = Math.round(itemTotal / 1.1);
     const itemVat = itemTotal - itemSupply;
 
@@ -922,7 +926,7 @@ export async function downloadInvoiceExcel({
       formatProductName(item.product.product_name, optionText),
       optionText || '-',
       item.quantity,
-      item.unitPrice.toLocaleString(),
+      displayUnitPrice.toLocaleString(),
       itemSupply.toLocaleString(),
       itemVat.toLocaleString(),
       '',

@@ -49,13 +49,41 @@ function applyTruncation(amount: number, truncation: TruncationType): number {
   }
 }
 
-// 개별 항목의 소계 계산
+// 할인 적용된 표시 단가 (반올림)
+export function getDisplayUnitPrice(
+  unitPrice: number,
+  discountRate: number,
+): number {
+  return Math.round(unitPrice * (1 - discountRate / 100));
+}
+
+// 할인 적용된 단가로부터 원본 단가 역산 (사용자가 표시 단가에 직접 입력했을 때)
+export function reverseUnitPrice(
+  displayUnitPrice: number,
+  discountRate: number,
+): number {
+  const factor = 1 - discountRate / 100;
+  if (factor <= 0) return displayUnitPrice;
+  return displayUnitPrice / factor;
+}
+
+// 개별 항목의 소계 (할인 미적용, 절대 원본)
 export function calcItemTotal(item: QuoteItem): number {
   const addonTotal = item.addons.reduce(
     (sum, a) => sum + a.unitPrice * a.quantity,
     0
   );
   return item.unitPrice * item.quantity + addonTotal;
+}
+
+// 할인 적용된 표시 견적가 (행 단위)
+export function calcItemDisplayTotal(item: QuoteItem, discountRate: number): number {
+  const unitDisplay = getDisplayUnitPrice(item.unitPrice, discountRate);
+  const addonTotal = item.addons.reduce(
+    (sum, a) => sum + getDisplayUnitPrice(a.unitPrice, discountRate) * a.quantity,
+    0
+  );
+  return unitDisplay * item.quantity + addonTotal;
 }
 
 export default function useQuote() {
@@ -82,14 +110,17 @@ export default function useQuote() {
     );
   }, []);
 
-  // 항목 단가 수동 변경 (수동 조정이 필요한 경우)
-  const updateUnitPrice = useCallback((id: string, unitPrice: number) => {
+  // 항목 단가 수동 변경
+  // 입력값은 "사용자가 화면에서 본 표시 단가" (할인 적용된 값)
+  // → 역산해서 원본 단가(state.unitPrice)에 저장
+  const updateUnitPrice = useCallback((id: string, displayUnitPrice: number) => {
+    const original = reverseUnitPrice(Math.max(0, displayUnitPrice), discountRate);
     setItems((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, unitPrice: Math.max(0, unitPrice) } : item
+        item.id === id ? { ...item, unitPrice: original } : item
       )
     );
-  }, []);
+  }, [discountRate]);
 
   // 항목 품명 변경
   const updateName = useCallback((id: string, name: string) => {
@@ -120,11 +151,22 @@ export default function useQuote() {
   }, []);
 
   // 합계 계산
+  // - 할인은 행별 단가에 먼저 적용되고 (반올림), 그 후 합산하는 방식
+  // - 표시되는 행별 견적가의 단순 합 = 합계 (검산 일관성 우선)
   const totals: QuoteTotals = useMemo(() => {
-    const subtotal = items.reduce((sum, item) => sum + calcItemTotal(item), 0);
-    const discountAmount = Math.round(subtotal * (discountRate / 100));
-    const afterDiscount = subtotal - discountAmount;
-    
+    // 원본 합계 (참고용)
+    const originalSubtotal = items.reduce(
+      (sum, item) => sum + calcItemTotal(item),
+      0,
+    );
+    // 행별 할인 적용 후 견적가 합 = 실제 청구액
+    const subtotal = items.reduce(
+      (sum, item) => sum + calcItemDisplayTotal(item, discountRate),
+      0,
+    );
+    const discountAmount = originalSubtotal - subtotal;
+    const afterDiscount = subtotal;
+
     // 절삭 적용
     const afterTruncation = applyTruncation(afterDiscount, truncation);
     const truncationAmount = afterDiscount - afterTruncation;
